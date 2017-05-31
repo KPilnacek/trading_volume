@@ -6,7 +6,10 @@ SP_DATA = Path(__file__).absolute().parents[1] / 'data' / '^GSPC.csv'
 
 
 def get_data() -> pd.DataFrame:
+    # the data are manually pre-downloaded as it seems that Yahoo API does not work...
     res = pd.DataFrame.from_csv(SP_DATA)
+
+    # change names of columns to lowercase and no spaces
     res.columns = [col.lower().replace(' ', '_') for col in res.columns]
     return res
 
