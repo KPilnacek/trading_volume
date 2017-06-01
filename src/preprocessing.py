@@ -1,4 +1,6 @@
 """
+Preprocessing of time series from stock markets.
+
 Useful links:
 
 Seasonality analysis
@@ -28,6 +30,7 @@ import statsmodels.api as sm
 
 def drop_undefined(func):
     """
+    Drops all undefined values (infinity, NaN).
     Decorator for function, which returns pd.Series.
 
     :param func: Function to decorate (should return pd.Series)
@@ -48,8 +51,8 @@ def drop_undefined(func):
 def transform(transformation: str, ts: pd.Series) -> pd.Series:
     """
     Mathematical transformation of time series using various types of transformations.
-    
-    :param transformation: Type of transormation
+
+    :param transformation: Type of transformation
     :param ts: Time series, which should be transformed
     :return: Transformed time series
     """
