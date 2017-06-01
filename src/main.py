@@ -5,6 +5,7 @@ import sys
 from typing import List
 
 import get_data
+from preprocessing import adjust_to_seasonality
 
 __author__ = "Krystof Pilnacek"
 __description__ = '''
@@ -15,17 +16,33 @@ __description__ = '''
 def parse_args(argv: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-f',
+                        '--frequency',
+                        type=int,
+                        default=90,
+                        help='Frequency of seasonal effects (in days)')
+
     return parser.parse_args(argv[1:])
 
 
-def run():
-    sp_historical = get_data.get_data()
+def run(
+        frequency: int = 90,
+):
+    # load data
+    sp = get_data.get_data()
+
+    # preprocess
+    sp_volume_adjusted = adjust_to_seasonality(sp.volume, freq=frequency)
+
+    # todo: model...
 
 
 def main(argv: List[str]) -> int:
     args = parse_args(argv)
 
-    run()
+    run(
+        frequency=args.frequency,
+    )
 
     return 0
 
