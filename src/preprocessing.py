@@ -47,8 +47,34 @@ def drop_undefined(func):
     return wrapper
 
 
+def divide_data(
+        df_to_divide: pd.DataFrame,
+        frac_train: float = .8,
+        random: bool = False,
+) -> (pd.DataFrame, pd.DataFrame):
+    """
+    Divide data into **test** and **train** parts.
+
+    :param df_to_divide: Dataframe to be divided
+    :param optional frac_train: Fraction of train data. The rest is used as the test data.
+    :param optional random: If `True` then the division is done randomly.
+    :return: Test and train parts of the provided dataframe.
+    """
+    if random:
+        train_df = df_to_divide.sample(frac=frac_train)
+        test_df = df_to_divide[~df_to_divide.index.isin(train_df.index)]
+    else:
+        n_rows = len(df_to_divide)
+        train_rows = int(n_rows * frac_train)
+
+        train_df = df_to_divide.iloc[:train_rows]
+        test_df = df_to_divide.iloc[train_rows:]
+
+    return train_df, test_df
+
+
 @drop_undefined
-def transform(transformation: str, ts: pd.Series) -> pd.Series:
+def transform(transformation: str, ts: pd.Series, *args, **kwargs) -> pd.Series:
     """
     Mathematical transformation of time series using various types of transformations.
 
@@ -58,7 +84,10 @@ def transform(transformation: str, ts: pd.Series) -> pd.Series:
     """
     transformation_dict = {
         'log': lambda x: np.log(x),
-        'first_diff': lambda x: (x - x.shift(1)).dropna()
+        'first_diff': lambda x: (x - x.shift(1)).dropna(),
+        'decompose_trend': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).trend,
+        'decompose_season': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).seasonal,
+        'decompose_resid': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).resid,
     }
 
     if transformation not in transformation_dict:
@@ -80,16 +109,14 @@ def adjust_to_seasonality(time_series: pd.Series,
     :param transformations: The mathematical transformation to be applied.
     :return: Transformed time series
     """
+    res = time_series.copy()
 
     # mathematical transformation
     if transformations is not None:
         for transformation in transformations:
-            time_series = transform(transformation, time_series)
+            res = transform(transformation, res, freq=freq)
 
-    # seasonal decomposition
-    res = sm.tsa.seasonal_decompose(time_series, freq=freq)
-
-    return res.resid
+    return res
 
 if __name__ == '__main__':
     from get_data import get_data
@@ -99,7 +126,9 @@ if __name__ == '__main__':
     df = get_data()
 
     # show different adjustments to seasonality
-    transformations_ = [['log'], ['first_diff', 'log'], ['log', 'first_diff']]
+    transformations_ = [['first_diff', 'log', 'decompose_resid'],
+                        ['log', 'first_diff', 'decompose_resid'],
+                        ['log', 'decompose_resid']]
     for tr in transformations_:
         adjust_to_seasonality(df.volume, transformations=tr).plot()
     plt.legend([str(tr) for tr in transformations_], loc='best')
