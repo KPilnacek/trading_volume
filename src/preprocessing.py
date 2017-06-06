@@ -30,15 +30,15 @@ import statsmodels.api as sm
 import _tools
 
 
-def divide_data(
+def split_data(
         df_to_divide: pd.DataFrame,
         frac_train: float = .8,
         random: bool = False,
 ) -> (pd.DataFrame, pd.DataFrame):
     """
-    Divide data into **test** and **train** parts.
+    Split data into **test** and **train** parts.
 
-    :param df_to_divide: Dataframe to be divided
+    :param df_to_divide: Dataframe to be splitted
     :param optional frac_train: Fraction of train data. The rest is used as the test data.
     :param optional random: If `True` then the division is done randomly.
     :return: Test and train parts of the provided dataframe.

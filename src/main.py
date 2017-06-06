@@ -7,6 +7,7 @@ from typing import List
 import _tools
 import get_data
 import preprocessing
+import model
 
 __author__ = "Krystof Pilnacek"
 __description__ = '''
@@ -41,7 +42,11 @@ def run(
 
     # preprocess
     sp['adj_volume'] = preprocessing.adjust_to_seasonality(sp.volume, freq=frequency, transformations=['decompose_resid'])
-    train, test = preprocessing.divide_data(sp, frac_train=frac_train)
+    train, test = preprocessing.split_data(sp, frac_train=frac_train)
+
+    # reference model
+    res = model.reference(train.volume)
+
 
     # todo: model...
 

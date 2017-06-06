@@ -1,4 +1,5 @@
 import argparse
+import functools
 from typing import Any
 
 import numpy as np
@@ -53,6 +54,8 @@ def drop_undefined(func):
     :param func: Function to decorate (should return pd.Series)
     :return: Decorated function
     """
+
+    @functools.wraps(func)
     def wrapper(*args, **kwargs) -> pd.Series:
         original_res = func(*args, **kwargs)  # type: pd.Series
         assert isinstance(original_res, pd.Series), 'The decorated function should return pd.Series'
