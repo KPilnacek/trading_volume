@@ -27,24 +27,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-
-def drop_undefined(func):
-    """
-    Drops all undefined values (infinity, NaN).
-    Decorator for function, which returns pd.Series.
-
-    :param func: Function to decorate (should return pd.Series)
-    :return: Decorated function
-    """
-    def wrapper(*args, **kwargs) -> pd.Series:
-        original_res = func(*args, **kwargs)  # type: pd.Series
-        assert isinstance(original_res, pd.Series), 'The decorated function should return pd.Series'
-
-        no_nans = original_res.dropna()
-        finite = no_nans[np.isfinite(no_nans)]
-
-        return finite
-    return wrapper
+import _tools
 
 
 def divide_data(
@@ -73,7 +56,7 @@ def divide_data(
     return train_df, test_df
 
 
-@drop_undefined
+@_tools.drop_undefined
 def transform(transformation: str, ts: pd.Series, *args, **kwargs) -> pd.Series:
     """
     Mathematical transformation of time series using various types of transformations.

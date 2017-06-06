@@ -4,9 +4,9 @@ import argparse
 import sys
 from typing import List
 
-import get_data
 import _tools
-from preprocessing import adjust_to_seasonality, divide_data
+import get_data
+import preprocessing
 
 __author__ = "Krystof Pilnacek"
 __description__ = '''
@@ -40,8 +40,8 @@ def run(
     sp = get_data.get_data()
 
     # preprocess
-    sp['adj_volume'] = adjust_to_seasonality(sp.volume, freq=frequency, transformations=['decompose_resid'])
-    train, test = divide_data(sp, frac_train=frac_train)
+    sp['adj_volume'] = preprocessing.adjust_to_seasonality(sp.volume, freq=frequency, transformations=['decompose_resid'])
+    train, test = preprocessing.divide_data(sp, frac_train=frac_train)
 
     # todo: model...
 

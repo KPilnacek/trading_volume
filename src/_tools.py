@@ -1,6 +1,9 @@
 import argparse
 from typing import Any
 
+import numpy as np
+import pandas as pd
+
 
 def is_number(number: Any) -> bool:
     """
@@ -40,6 +43,25 @@ def parse_num_in_range(number_str: str, start: float = 0, end: float = 1) -> flo
         raise argparse.ArgumentTypeError(msg)
 
     return number
+
+
+def drop_undefined(func):
+    """
+    Drops all undefined values (infinity, NaN).
+    Decorator for function, which returns pd.Series.
+
+    :param func: Function to decorate (should return pd.Series)
+    :return: Decorated function
+    """
+    def wrapper(*args, **kwargs) -> pd.Series:
+        original_res = func(*args, **kwargs)  # type: pd.Series
+        assert isinstance(original_res, pd.Series), 'The decorated function should return pd.Series'
+
+        no_nans = original_res.dropna()
+        finite = no_nans[np.isfinite(no_nans)]
+
+        return finite
+    return wrapper
 
 
 # only for testing...
