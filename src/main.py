@@ -42,8 +42,8 @@ def run(
 
     # preprocess
     sp['adj_volume'] = preprocessing.adjust_to_seasonality(sp.volume,
-                                                           transformations=['decompose_resid'],
-                                                           freq=frequency, )
+                                                           transformations=['scale'],
+                                                           )
     train, test = preprocessing.split_data(sp, frac_train=frac_train)
 
     # reference model

@@ -61,11 +61,12 @@ def scale(data: pd.Series, factor: Optional[float] = None) -> pd.Series:
     Scales data by certain factor.
 
     :param data: data to scale
-    :param factor: factor by which the data will be scaled. If not provided, the data are scaled to order :math:`10^0`.
+    :param factor: factor by which the data will be scaled.
+    If not provided, the data are scaled to order :math:`10^0`.
     :return: scaled data
     """
     if factor is None:
-        factor = 10**(-np.floor(max(np.log10(data))))
+        factor = 10**(-np.floor(np.mean(np.log10(data))))
 
     assert factor > 0, f'Factor {factor} is less or equal to zero'
 

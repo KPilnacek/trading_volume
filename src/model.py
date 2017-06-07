@@ -46,10 +46,10 @@ if __name__ == '__main__':
 
     plt.figure()
 
-    A, B = split_data(df, random=False)
+    train_df, test_df = split_data(df, random=False)
 
-    train = A[COL]
-    test = B[COL]
+    train = train_df[COL]
+    test = test_df[COL]
 
     train.plot()
     test.plot()
