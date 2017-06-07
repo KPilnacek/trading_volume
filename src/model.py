@@ -5,42 +5,69 @@ http://www.statsmodels.org/stable/examples/notebooks/generated/statespace_sarima
 How to predict from unrelated dataset with SARIMAX
 https://github.com/statsmodels/statsmodels/issues/2577
 """
+from typing import Type, Union
+
 import pandas as pd
 import statsmodels.api as sm
 
 ModelResult = sm.tsa.statespace.MLEResults
-SARIMAX = sm.tsa.statespace.SARIMAX
+ModelClass = sm.tsa.statespace.MLEModel
+SARIMAX = sm.tsa.SARIMAX
+VARMAX = sm.tsa.VARMAX
 
 
-def predict_from_unrelated(new_data: pd.Series, model_result: ModelResult, model: SARIMAX, steps: int = 1) -> pd.Series:
+class Model(object):
     """
-    Predicts out-of-sample data for already-fitted model for data, which the model did not see before.
+    Holds model of time series from `statsmodels` package
 
-    Inspiration taken from: https://github.com/statsmodels/statsmodels/issues/2577
-
-    :param new_data: data from which should carried out the prediction
-    :param model_result: result of the fitted model
-    :param model: fitted model, which should be used for the prediction
-    :param steps: number of steps to be predicted
-    :return: the prediction
+    :param time_series_train: time series on which the model should be trained
+    :param model: `stasmodels` timeseries model (*e*. *g*. SARIMAX, VARMAX)
+    :param kwargs: parameters for the models
     """
 
-    mod_new = SARIMAX(new_data, order=model.order, seasonal_order=model.seasonal_order, trend=model.trend)
-    res_new = mod_new.filter(model_result.params)
+    def __init__(
+            self,
+            time_series_train: Union[pd.Series, pd.DataFrame],
+            model: Type[ModelClass] = SARIMAX,
+            **kwargs
+    ):
 
-    return res_new.forecast(steps=steps)
+        self._model = model(endog=time_series_train, **kwargs)
+        self._kwargs = kwargs
 
+        self._model_result = self._model.fit(disp=False)
 
-def reference(time_series_train: pd.Series) -> (ModelResult, SARIMAX):
-    """
-    Fit reference model to a time series.
-    :param time_series_train:
-    :return: result and fitted model
-    """
-    mod = SARIMAX(time_series_train, trend='ct', order=(8, 1, 1))
-    res = mod.fit(disp=False)
+    def forecast_from_unrelated(self, new_data: pd.Series, steps: int = 1, **kwargs) -> pd.Series:
+        """
+        Predicts out-of-sample data for already-fitted model for data, which the model did not see before.
 
-    return res, mod
+        Inspiration taken from: https://github.com/statsmodels/statsmodels/issues/2577
+
+        :param new_data: data from which should carried out the prediction
+        :param steps: number of steps to forecast
+        :return: forecast values
+        """
+
+        mod_new = type(self._model)(endog=new_data, **self._kwargs)
+        res_new = mod_new.filter(self._model_result.params)
+
+        return res_new.forecast(steps=steps, **kwargs)
+
+    def forecast(self, steps: int = 1, **kwargs) -> pd.Series:
+        """
+        Forecasts out-of-sample data based on the train data.
+
+        :param steps: number of steps to forecast
+        :param kwargs:
+        :return: forecast values
+        """
+        res = self._model_result.forecast(steps, **kwargs)  # type: pd.Series
+        return res
+
+    @property
+    def fitted_values(self) -> pd.Series:
+        """The predicted values of the model."""
+        return self._model_result.fittedvalues
 
 
 if __name__ == '__main__':
@@ -75,14 +102,10 @@ if __name__ == '__main__':
     train.plot()
     test.plot()
 
-    res_, mod_ = reference(train)
+    reference = Model(train, model=SARIMAX, trend='ct', order=(8, 1, 1))
 
-    res_.fittedvalues.plot()
-
-    prediction = res_.forecast(steps=2)  # type: pd.Series
-    prediction.plot()
-
-    prediction = predict_from_unrelated(test[:10], model_result=res_, model=mod_, steps=2)  # type: pd.Series
-    prediction.plot()
+    reference.fitted_values.plot()
+    reference.forecast(steps=2).plot()
+    reference.forecast_from_unrelated(test[:10], steps=2).plot()
 
     plt.show()

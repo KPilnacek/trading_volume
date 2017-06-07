@@ -47,8 +47,7 @@ def run(
     train, test = preprocessing.split_data(sp, frac_train=frac_train)
 
     # reference model
-    res = model.reference(train.volume)
-
+    reference = model.Model(train.volume, trend='ct', order=(8, 1, 1))
 
     # todo: model...
 
