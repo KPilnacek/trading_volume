@@ -56,14 +56,16 @@ def split_data(
     return train_df, test_df
 
 
-def scale(data: pd.Series, factor: float = 1) -> pd.Series:
+def scale(data: pd.Series, factor: Optional[float] = None) -> pd.Series:
     """
     Scales data by certain factor.
 
     :param data: data to scale
-    :param factor: factor by which the data will be scaled
+    :param factor: factor by which the data will be scaled. If not provided, the data are scaled to order :math:`10^0`.
     :return: scaled data
     """
+    if factor is None:
+        factor = 10**(-np.floor(max(np.log10(data))))
 
     assert factor > 0, f'Factor {factor} is less or equal to zero'
 
@@ -86,7 +88,7 @@ def transform(transformation: str, ts: pd.Series, **kwargs) -> pd.Series:
     transformation_dict = {
         'log': np.log,
         'first_diff': lambda x: (x - x.shift(1)).dropna(),
-        'scale': lambda x: scale(x, factor=kwargs.get('factor', 1)),
+        'scale': lambda x: scale(x, factor=kwargs.get('factor')),
         'decompose_trend': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).trend,
         'decompose_season': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).seasonal,
         'decompose_resid': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).resid,

@@ -34,8 +34,8 @@ if __name__ == '__main__':
     df = get_data()
 
     # adjusted volume
-    factor = - np.floor(max(np.log10(df.volume)))
-    df['adj_volume'] = adjust_to_seasonality(df.volume, transformations=['scale', ], factor=10**factor)
+
+    df['adj_volume'] = adjust_to_seasonality(df.volume, transformations=['scale', ])
 
     # ACF and PACF
     fig = plt.figure(figsize=(12, 8))
