@@ -56,8 +56,24 @@ def split_data(
     return train_df, test_df
 
 
+def scale(data: pd.Series, factor: float = 1) -> pd.Series:
+    """
+    Scales data by certain factor.
+
+    :param data: data to scale
+    :param factor: factor by which the data will be scaled
+    :return: scaled data
+    """
+
+    assert factor > 0, f'Factor {factor} is less or equal to zero'
+
+    res = data * factor  # type: pd.Series
+
+    return res
+
+
 @_tools.drop_undefined
-def transform(transformation: str, ts: pd.Series, *args, **kwargs) -> pd.Series:
+def transform(transformation: str, ts: pd.Series, **kwargs) -> pd.Series:
     """
     Mathematical transformation of time series using various types of transformations.
 
@@ -65,12 +81,15 @@ def transform(transformation: str, ts: pd.Series, *args, **kwargs) -> pd.Series:
     :param ts: Time series, which should be transformed
     :return: Transformed time series
     """
+    freq = kwargs.get('freq', 90)
+
     transformation_dict = {
-        'log': lambda x: np.log(x),
+        'log': np.log,
         'first_diff': lambda x: (x - x.shift(1)).dropna(),
-        'decompose_trend': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).trend,
-        'decompose_season': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).seasonal,
-        'decompose_resid': lambda x: sm.tsa.seasonal_decompose(x, *args, **kwargs).resid,
+        'scale': lambda x: scale(x, factor=kwargs.get('factor', 1)),
+        'decompose_trend': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).trend,
+        'decompose_season': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).seasonal,
+        'decompose_resid': lambda x: sm.tsa.seasonal_decompose(x, freq=freq).resid,
     }
 
     if transformation not in transformation_dict:
@@ -80,8 +99,8 @@ def transform(transformation: str, ts: pd.Series, *args, **kwargs) -> pd.Series:
 
 
 def adjust_to_seasonality(time_series: pd.Series,
-                          freq: int = 90,
                           transformations: Optional[List[str]] = None,
+                          **kwargs
                           ) -> pd.Series:
     """
     Removes seasonal pattern and trend from the data in order to allow modelling of the residuals.
@@ -97,7 +116,7 @@ def adjust_to_seasonality(time_series: pd.Series,
     # mathematical transformation
     if transformations is not None:
         for transformation in transformations:
-            res = transform(transformation, res, freq=freq)
+            res = transform(transformation, res, **kwargs)
 
     return res
 
