@@ -82,9 +82,9 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         """
         Uses method *forecast_from_unrelated* for rolling prediction over long interval.
 
-        :param new_data:
-        :param lag:
-        :return:
+        :param new_data: test data
+        :param lag: number of previous steps to take into account during prediction
+        :return: prediction
         """
         res = []
         idx = new_data.index
