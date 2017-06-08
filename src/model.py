@@ -47,7 +47,7 @@ class Results(NamedTuple):
 
 class BaseModel(object, metaclass=abc.ABCMeta):
     """
-    Abstract class of model
+    Abstract class of time series model
 
     :param time_series_train: time series on which the model should be trained
     :param time_series_test: time series on which the model should be tested
@@ -127,8 +127,15 @@ class BaseModel(object, metaclass=abc.ABCMeta):
               + ' ' * (len(str(self)) - 8)
               + f'unrelated SSE: {unrelated_stat.sse:7.2f}, unrelated R^2: {unrelated_stat.r2:7.4f}')
 
-    def results(self, steps: Optional[int] = None, lag: int = 10, show_plots: bool = False):
+    def results(self, steps: Optional[int] = None, lag: int = 10, show_plots: bool = False) -> Results:
+        """
+        Plots train and test (if provided) data and returns simple statistics object.
 
+        :param steps: number steps to be predicted on the test data
+        :param lag: number of steps to predict from
+        :param show_plots: if `True` the plots are shown
+        :return: Simple statistics (SSE, R^2)
+        """
         sse = (self.resid ** 2).sum()
         sst = ((self._train - self._train.mean()) ** 2).sum()
         train_res = Results(sse=sse, sst=sst)
@@ -162,6 +169,8 @@ class BaseModel(object, metaclass=abc.ABCMeta):
 
         if show_plots:
             plt.show()
+
+        return unrel_res
 
 
 class Model(BaseModel):
