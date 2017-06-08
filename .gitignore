@@ -103,3 +103,6 @@ env/
 
 #PyCharm
 .idea
+
+# sandbox files
+_sandbox.py

@@ -1,26 +1,12 @@
-"""
-Useful link:
-http://www.statsmodels.org/stable/examples/notebooks/generated/statespace_sarimax_stata.html
-
-How to predict from unrelated dataset with SARIMAX
-https://github.com/statsmodels/statsmodels/issues/2577
-"""
 import abc
 import warnings
-from typing import Type, Union, Optional, NamedTuple
+from typing import NamedTuple, Optional, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
+from matplotlib import pyplot as plt
 
-ModelResult = sm.tsa.statespace.MLEResults
-ModelClass = sm.tsa.statespace.MLEModel
 TimeSeries = Union[pd.Series, pd.DataFrame]
-
-SARIMAX = sm.tsa.SARIMAX
-ARIMA = sm.tsa.ARIMA
-VARMAX = sm.tsa.VARMAX
 
 
 class Results(NamedTuple):
@@ -172,114 +158,3 @@ class BaseModel(object, metaclass=abc.ABCMeta):
             plt.show()
 
         return unrel_res
-
-
-class Model(BaseModel):
-    """
-    Holds model of time series from `statsmodels` package
-
-    :param time_series_train: time series on which the model should be trained
-    :param time_series_test: time series on which the model should be tested
-    :param model: `stasmodels` timeseries model (*e*. *g*. SARIMAX, VARMAX)
-    :param kwargs: parameters for the models
-    """
-
-    def __init__(
-            self,
-            time_series_train: TimeSeries,
-            time_series_test: Optional[TimeSeries] = None,
-            model: Type[ModelClass] = SARIMAX,
-            **kwargs
-    ):
-
-        super(Model, self).__init__(time_series_train, time_series_test, **kwargs)
-
-        self._model = model(endog=self._train, **kwargs)
-        self._model_result = self._model.fit(disp=False)
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self._model.__class__.__name__})'
-
-    def forecast_from_unrelated(self, new_data: TimeSeries, steps: int = 1, **kwargs) -> pd.Series:
-        mod_new = type(self._model)(endog=new_data, **self._kwargs)
-        res_new = mod_new.filter(self._model_result.params)
-
-        return res_new.forecast(steps=steps, **kwargs)
-
-    def forecast(self, steps: int = 1, **kwargs) -> pd.Series:
-        res = self._model_result.forecast(steps, **kwargs)  # type: pd.Series
-        return res
-
-    @property
-    def fitted_values(self) -> pd.Series:
-        return self._model_result.fittedvalues
-
-    @property
-    def resid(self) -> pd.Series:
-        return self._model_result.resid
-
-    def print(self, *args, **kwargs):
-        print(self._model_result.summary())
-        super().print(*args, **kwargs)
-
-
-class Reference(BaseModel):
-    """
-    Persistence model
-    """
-
-    def __repr__(self):
-        return f'Model({self.__class__.__name__})'
-
-    @property
-    def fitted_values(self) -> pd.Series:
-        return self._train.shift(1)
-
-    def forecast(self, steps: int = 1, **kwargs) -> pd.Series:
-        index = pd.bdate_range(self._train.index[-1], periods=steps + 1)[1:]
-        return pd.Series([self._train.values[-1]]*steps, index=index)
-
-    def forecast_from_unrelated(self, new_data: TimeSeries, steps: int = 1, **kwargs) -> pd.Series:
-        index = pd.bdate_range(new_data.index[-1], periods=steps + 1)[1:]
-        return pd.Series([new_data.values[-1]] * steps, index=index)
-
-    @property
-    def resid(self) -> pd.Series:
-        res = self._train - self.fitted_values
-        res[res.isnull()] = res[np.where(res.isnull())[0]+1].values
-        return res
-
-
-if __name__ == '__main__':
-    from get_data import get_data
-    from preprocessing import adjust_to_seasonality, split_data
-
-    COL = 'volume'
-
-    # get data
-    df = get_data()
-
-    # adjusted volume
-    # df['adj_volume'] = adjust_to_seasonality(df.volume, transformations=['scale', ])
-    df = df.apply(adjust_to_seasonality, args=(['scale', ],))
-
-    # ACF and PACF
-    fig = plt.figure(figsize=(12, 8))
-    ax1 = fig.add_subplot(211)
-    fig = sm.graphics.tsa.plot_acf(df[COL], lags=100, ax=ax1)
-    ax2 = fig.add_subplot(212)
-    fig = sm.graphics.tsa.plot_pacf(df[COL], lags=50, ax=ax2)
-
-    train_df, test_df = split_data(df, random=False)
-
-    train = train_df[COL]
-    test = test_df[COL]
-
-    ref = Reference(train, test)
-    ref.results()
-
-    sarimax = Model(train, test, model=SARIMAX, trend='c', order=(4, 1, 4))
-    # varmax = Model(train_df[['open', 'high', 'low', 'adj_close', 'volume']], model=VARMAX, trend='c', order=(8, 1))
-    sarimax.results()
-
-    plt.show()

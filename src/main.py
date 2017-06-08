@@ -47,7 +47,7 @@ def run(
     train, test = preprocessing.split_data(sp, frac_train=frac_train)
 
     # reference model
-    reference = model.Reference(train.adj_volume, test.adj_volume)
+    reference = model.reference.Reference(train.adj_volume, test.adj_volume)
     reference.results()
 
     # todo: model...
