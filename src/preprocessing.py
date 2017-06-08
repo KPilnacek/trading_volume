@@ -25,9 +25,13 @@ from typing import Optional, List
 
 import numpy as np
 import pandas as pd
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import statsmodels.api as sm
 
 import _tools
+
 
 
 def split_data(
