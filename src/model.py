@@ -78,7 +78,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
-    def rolling_forecast(self, new_data: TimeSeries, lag: int = 10) -> TimeSeries:
+    def rolling_forecast(self, new_data: TimeSeries, lag: int = 10, ) -> TimeSeries:
         """
         Uses method *forecast_from_unrelated* for rolling prediction over long interval.
 
@@ -116,9 +116,10 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         """The model residuals"""
         raise NotImplementedError
 
-    def print(self, train_stat: Results, unrelated_stat: Results):
+    def print(self, train_stat: Results, unrelated_stat: Results, ):
         """
         Prints simple statistics of the model.
+
         :param train_stat: Statistics of train data
         :param unrelated_stat: Statistics of unrelated data
         """
@@ -127,7 +128,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
               + ' ' * (len(str(self)) - 8)
               + f'unrelated SSE: {unrelated_stat.sse:7.2f}, unrelated R^2: {unrelated_stat.r2:7.4f}')
 
-    def results(self, steps: Optional[int] = None, lag: int = 10, show_plots: bool = False) -> Results:
+    def results(self, steps: Optional[int] = None, lag: int = 10, show_plots: bool = False, ) -> Results:
         """
         Plots train and test (if provided) data and returns simple statistics object.
 
@@ -275,10 +276,10 @@ if __name__ == '__main__':
     test = test_df[COL]
 
     ref = Reference(train, test)
-    ref.results(steps=None)
+    ref.results()
 
     sarimax = Model(train, test, model=SARIMAX, trend='c', order=(4, 1, 4))
     # varmax = Model(train_df[['open', 'high', 'low', 'adj_close', 'volume']], model=VARMAX, trend='c', order=(8, 1))
-    sarimax.results(steps=None)
+    sarimax.results()
 
     plt.show()
