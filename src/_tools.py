@@ -11,7 +11,7 @@ def is_number(number: Any) -> bool:
     Check if the given argument can be converted to `float` or `int`.
 
     :param number: Would-be number
-    :return:
+    :return: True if `number` can be converted to `float` or `int`.
     """
     for type_ in (float, int):
         try:
@@ -58,6 +58,7 @@ def drop_undefined(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs) -> pd.Series:
         original_res = func(*args, **kwargs)  # type: pd.Series
+
         assert isinstance(original_res, pd.Series), 'The decorated function should return pd.Series'
 
         no_nans = original_res.dropna()

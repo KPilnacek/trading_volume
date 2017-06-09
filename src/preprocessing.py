@@ -33,7 +33,6 @@ import statsmodels.api as sm
 import _tools
 
 
-
 def split_data(
         df_to_divide: pd.DataFrame,
         frac_train: float = .8,
@@ -127,6 +126,7 @@ def adjust_to_seasonality(time_series: pd.Series,
 
     return res
 
+# Only for testing ...
 if __name__ == '__main__':
     from get_data import get_data
     import matplotlib.pyplot as plt

@@ -17,7 +17,7 @@ def get_data(interpolate: bool = True) -> pd.DataFrame:
     res.columns = [col.lower().replace(' ', '_') for col in res.columns]
     return res
 
-
+# Only for testing ...
 if __name__ == '__main__':
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt

@@ -56,15 +56,13 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         """
         Predicts out-of-sample data for already-fitted model for data, which the model did not see before.
 
-        Inspiration taken from: https://github.com/statsmodels/statsmodels/issues/2577
-
         :param new_data: data from which should carried out the prediction
         :param steps: number of steps to forecast
         :return: forecast values
         """
         raise NotImplementedError
 
-    def rolling_forecast(self, new_data: TimeSeries, lag: int = 10, ) -> TimeSeries:
+    def rolling_forecast(self, new_data: TimeSeries, lag: int = 10, ) -> pd.Series:
         """
         Uses method *forecast_from_unrelated* for rolling prediction over long interval.
 
@@ -76,7 +74,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         idx = new_data.index
         for i in range(lag, len(new_data)):
             res.append(self.forecast_from_unrelated(new_data[idx[i-lag:i]], steps=1))
-        res_pd = pd.concat(res)  # type: TimeSeries
+        res_pd = pd.concat(res)  # type: pd.Series
         return res_pd
 
     @abc.abstractmethod
@@ -121,7 +119,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         :param steps: number steps to be predicted on the test data
         :param lag: number of steps to predict from
         :param show_plots: if `True` the plots are shown
-        :return: Simple statistics (SSE, R^2)
+        :return: Simple statistics on test data (SSE, R^2)
         """
         sse = (self.resid ** 2).sum()
         sst = ((self._train - self._train.mean()) ** 2).sum()

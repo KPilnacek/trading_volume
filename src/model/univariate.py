@@ -48,6 +48,15 @@ class Model(BaseModel):
         return f'{self.__class__.__name__}({self._model.__class__.__name__})'
 
     def forecast_from_unrelated(self, new_data: TimeSeries, steps: int = 1, **kwargs) -> pd.Series:
+        """
+        Predicts out-of-sample data for already-fitted model for data, which the model did not see before.
+
+        Inspiration taken from: https://github.com/statsmodels/statsmodels/issues/2577
+
+        :param new_data: data from which should carried out the prediction
+        :param steps: number of steps to forecast
+        :return: forecast values
+        """
         mod_new = type(self._model)(endog=new_data, **self._kwargs)
         res_new = mod_new.filter(self._model_result.params)
 
