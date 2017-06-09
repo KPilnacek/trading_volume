@@ -163,8 +163,36 @@ class BaseModel(object, metaclass=abc.ABCMeta):
             SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
             plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '_impulse_resp' + '.pdf')))
 
+    def _plot(self, data: pd.Series, fit: TimeSeries):
+        """
+        Plots data along its fit
+        :param data: data 
+        :param fit: fit of the data
+        """
+        data.plot()
+        if self.column is None:
+            fit.plot()
+        else:
+            fit[self.column].plot()
+
+    def _stat(self, data: pd.Series, fit: TimeSeries, n_samples: int = -1) -> Results:
+        """
+        Computes simple statistics
+        :param data: data
+        :param fit: fit of the data
+        :param n_samples: number of samples to take into account (default = -1 ... all samples)
+        :return: results object
+        """
+        if self.column is not None:
+            fit = fit[self.column]
+
+        sse_u = ((data[:n_samples] - fit).dropna() ** 2).sum()
+        sst_u = ((data[fit.index] - data[fit.index].mean()) ** 2).sum()
+
+        return Results(sse_u, sst_u)
+
     def results(self,
-                steps: Optional[int] = None,
+                steps: int = -1,
                 lag: int = 10,
                 show_plots: bool = False,
                 to_print: bool = False,
@@ -185,41 +213,18 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         if plot_args is None:
             plot_args = {'title': str(self) + dt.datetime.now().strftime('.%M%S')}
 
-        if self.column is None:
-            sse = (self.resid ** 2).sum()
-        else:
-            sse = (self.resid[self.column] ** 2).sum()
-
-        sst = ((self._train_plot - self._train_plot.mean()) ** 2).sum()
-        train_res = Results(sse=sse, sst=sst)
-
         plt.figure(plot_args.get('title', str(self)))
 
-        self._train_plot.plot()
-        if self.column is None:
-            self.fitted_values.plot()
-        else:
-            self.fitted_values[self.column].plot()
+        self._plot(self._train_plot, self.fitted_values)
+        train_res = self._stat(self._train_plot, self.fitted_values)
 
         if self._test is not None:
 
-            if steps is None:
-                n_test_samples = len(self._test_plot)
-            else:
-                n_test_samples = min(len(self._test_plot), steps)
-
-            self._test_plot.plot()
-
+            n_test_samples = min(len(self._test_plot), steps)
             rolling_forecast = self.rolling_forecast(self._test[:n_test_samples], lag=lag)
-            if self.column is not None:
-                rolling_forecast = rolling_forecast[self.column]
-            rolling_forecast.plot()
+            self._plot(self._test_plot, rolling_forecast)
+            unrel_res = self._stat(self._test_plot, rolling_forecast, n_test_samples)
 
-            sse_u = ((self._test_plot[:n_test_samples] - rolling_forecast).dropna() ** 2).sum()
-            sst_u = ((self._test_plot[rolling_forecast.index]
-                      - self._test_plot[rolling_forecast.index].mean()) ** 2).sum()
-
-            unrel_res = Results(sse_u, sst_u)
         else:
             warnings.warn('Test data not provided.')
             unrel_res = Results()
