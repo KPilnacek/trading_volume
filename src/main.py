@@ -25,11 +25,6 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
                         default='^GSPC.tsv',
                         help='Filename of time series to be analyzed')
 
-    parser.add_argument('--frequency',
-                        type=int,
-                        default=90,
-                        help='Frequency of seasonal effects (in days)')
-
     parser.add_argument('--fraction',
                         type=_tools.parse_num_in_range,
                         default=.8,
@@ -40,7 +35,6 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
 def run(
         filename: str = '^GSPC.csv',
-        frequency: int = 90,
         frac_train: float = .8,
 ):
     # load data
@@ -60,18 +54,18 @@ def run(
         res['reference; ' + transform] = reference.results(show_plots=False)
 
         # univariate model
-        sarimax = model.state_models.Model(train['volume'],
-                                           test['volume'],
-                                           model=model.state_models.SARIMAX,
-                                           trend='ct', order=(4, 1, 4), enforce_invertibility=False)
+        sarimax = model.statespace_models.Model(train['volume'],
+                                                test['volume'],
+                                                model=model.statespace_models.SARIMAX,
+                                                trend='ct', order=(4, 1, 4), enforce_invertibility=False)
         res['sarimax; ' + transform] = sarimax.results(show_plots=False)
 
         # multivariate model
-        varmax = model.state_models.Model(train[['open', 'close', 'volume']],
-                                          test[['open', 'close', 'volume']],
-                                          column='volume',
-                                          model=model.state_models.VARMAX,
-                                          trend='c', order=(4, 1))
+        varmax = model.statespace_models.Model(train[['open', 'close', 'volume']],
+                                               test[['open', 'close', 'volume']],
+                                               column='volume',
+                                               model=model.statespace_models.VARMAX,
+                                               trend='c', order=(4, 1))
         res['varmax; ' + transform] = varmax.results(show_plots=True)
 
     pprint(res)
@@ -81,7 +75,7 @@ def main(argv: List[str]) -> int:
     args = parse_args(argv)
 
     run(
-        frequency=args.frequency,
+        filename=args.file,
         frac_train=args.fraction,
     )
 

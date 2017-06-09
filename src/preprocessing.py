@@ -114,7 +114,6 @@ def adjust_to_seasonality(time_series: pd.Series,
     Allows several mathematical transformations.
 
     :param time_series: Time series, which should be transformed
-    :param freq: Frequency of the seasonal pattern (in days)
     :param transformations: The mathematical transformation to be applied.
     :return: Transformed time series
     """

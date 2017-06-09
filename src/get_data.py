@@ -6,6 +6,13 @@ DATA_PATH = Path(__file__).absolute().parents[1] / 'data'
 
 
 def get_data(filename: str = '^GSPC.csv', interpolate: bool = True) -> pd.DataFrame:
+    """
+    Imports pre-downloaded data from csv file and fills missing values in the dataset.
+
+    :param filename: name of the file to be loaded
+    :param interpolate: if True the missing values will be filled by interpolation
+    :return: the dataset
+    """
     # the data are manually pre-downloaded as it seems that Yahoo API does not work...
     res = pd.DataFrame.from_csv(DATA_PATH / filename)
     res = res.asfreq('B')  # type: pd.DataFrame
