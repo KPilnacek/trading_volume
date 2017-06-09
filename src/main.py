@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+import json
 import sys
+from pprint import pprint
 from typing import List
 
 import _tools
@@ -41,16 +43,34 @@ def run(
     sp = get_data.get_data()
 
     # preprocess
-    sp['adj_volume'] = preprocessing.adjust_to_seasonality(sp.volume,
-                                                           transformations=['scale'],
-                                                           )
-    train, test = preprocessing.split_data(sp, frac_train=frac_train)
+    df_scaled = sp.apply(preprocessing.adjust_to_seasonality, args=(['scale', ],))
+    df_first_diff = sp.apply(preprocessing.adjust_to_seasonality, args=(['first_diff', ],))
 
-    # reference model
-    reference = model.reference.Reference(train.adj_volume, test.adj_volume)
-    reference.results()
+    res = {}
 
-    # todo: model...
+    for transform, df in {'scaled': df_scaled, 'first_diff': df_first_diff}.items():
+        train, test = preprocessing.split_data(df, frac_train=frac_train)
+
+        # reference model
+        reference = model.reference.Reference(train['volume'], test['volume'])
+        res['reference; ' + transform] = reference.results(show_plots=False)
+
+        # univariate model
+        sarimax = model.state_models.Model(train['volume'],
+                                           test['volume'],
+                                           model=model.state_models.SARIMAX,
+                                           trend='ct', order=(4, 1, 4), enforce_invertibility=False)
+        res['sarimax; ' + transform] = sarimax.results(show_plots=False)
+
+        # multivariate model
+        varmax = model.state_models.Model(train[['open', 'close', 'volume']],
+                                          test[['open', 'close', 'volume']],
+                                          column='volume',
+                                          model=model.state_models.VARMAX,
+                                          trend='c', order=(4, 1))
+        res['varmax; ' + transform] = varmax.results(show_plots=True)
+
+    pprint(res)
 
 
 def main(argv: List[str]) -> int:

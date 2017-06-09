@@ -1,4 +1,9 @@
-import model.reference
-import model.univariate
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+from statsmodels.tools.sm_exceptions import EstimationWarning
+warnings.simplefilter(action='ignore', category=EstimationWarning)
 
-__all__ = ['univariate', 'reference']
+import model.reference
+import model.state_models
+
+__all__ = ['state_models.py', 'reference']

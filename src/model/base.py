@@ -44,10 +44,20 @@ class BaseModel(object, metaclass=abc.ABCMeta):
             self,
             time_series_train: TimeSeries,
             time_series_test: Optional[TimeSeries] = None,
+            column: Optional[str] = None,
             **kwargs
     ):
         self._train = time_series_train
         self._test = time_series_test
+
+        self.column = column
+        if self.column is None:
+            self._train_plot = self._train  # type: pd.Series
+            self._test_plot = self._test  # type: pd.Series
+        else:
+            self._train_plot = self._train[self.column]
+            if self._test is not None:
+                self._test_plot = self._test[self.column]
 
         self._kwargs = kwargs
 
@@ -73,7 +83,12 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         res = []
         idx = new_data.index
         for i in range(lag, len(new_data)):
-            res.append(self.forecast_from_unrelated(new_data[idx[i-lag:i]], steps=1))
+            if self.column:
+                data = new_data.loc[idx[i - lag:i]]
+            else:
+                data = new_data[idx[i - lag:i]]
+
+            res.append(self.forecast_from_unrelated(data, steps=1))
         res_pd = pd.concat(res)  # type: pd.Series
         return res_pd
 
@@ -112,45 +127,62 @@ class BaseModel(object, metaclass=abc.ABCMeta):
               + ' ' * (len(str(self)) - 8)
               + f'unrelated SSE: {unrelated_stat.sse:7.2f}, unrelated R^2: {unrelated_stat.r2:7.4f}')
 
-    def results(self, steps: Optional[int] = None, lag: int = 10, show_plots: bool = False, ) -> Results:
+    def results(self,
+                steps: Optional[int] = None,
+                lag: int = 10,
+                show_plots: bool = False,
+                to_print: bool = False,
+                ) -> Results:
         """
         Plots train and test (if provided) data and returns simple statistics object.
 
         :param steps: number steps to be predicted on the test data
         :param lag: number of steps to predict from
         :param show_plots: if `True` the plots are shown
+        :param to_print:  if `True` the simple statistics are printed
         :return: Simple statistics on test data (SSE, R^2)
         """
-        sse = (self.resid ** 2).sum()
-        sst = ((self._train - self._train.mean()) ** 2).sum()
+        if self.column is None:
+            sse = (self.resid ** 2).sum()
+        else:
+            sse = (self.resid[self.column] ** 2).sum()
+
+        sst = ((self._train_plot - self._train_plot.mean()) ** 2).sum()
         train_res = Results(sse=sse, sst=sst)
 
         plt.figure(str(self))
 
-        self._train.plot()
-        self.fitted_values.plot()
+        self._train_plot.plot()
+        if self.column is None:
+            self.fitted_values.plot()
+        else:
+            self.fitted_values[self.column].plot()
 
         if self._test is not None:
 
             if steps is None:
-                n_test_samples = len(self._test)
+                n_test_samples = len(self._test_plot)
             else:
-                n_test_samples = min(len(self._test), steps + lag)
+                n_test_samples = min(len(self._test_plot), steps + lag)
 
-            self._test.plot()
+            self._test_plot.plot()
 
             rolling_forecast = self.rolling_forecast(self._test[:n_test_samples], lag=lag)
+            if self.column is not None:
+                rolling_forecast = rolling_forecast[self.column]
             rolling_forecast.plot()
 
-            sse_u = ((self._test[:n_test_samples] - rolling_forecast).dropna() ** 2).sum()
-            sst_u = ((self._test[rolling_forecast.index] - self._test[rolling_forecast.index].mean()) ** 2).sum()
+            sse_u = ((self._test_plot[:n_test_samples] - rolling_forecast).dropna() ** 2).sum()
+            sst_u = ((self._test_plot[rolling_forecast.index]
+                      - self._test_plot[rolling_forecast.index].mean()) ** 2).sum()
 
             unrel_res = Results(sse_u, sst_u)
         else:
             warnings.warn('Test data not provided.')
             unrel_res = Results()
 
-        self.print(train_res, unrel_res)
+        if to_print:
+            self.print(train_res, unrel_res)
 
         if show_plots:
             plt.show()
