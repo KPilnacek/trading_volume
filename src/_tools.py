@@ -59,7 +59,7 @@ def drop_undefined(func):
     def wrapper(*args, **kwargs) -> pd.Series:
         original_res = func(*args, **kwargs)  # type: pd.Series
 
-        assert isinstance(original_res, pd.Series), 'The decorated function should return pd.Series'
+        assert isinstance(original_res, (pd.Series, pd.DataFrame)), 'The decorated function should return pd.Series'
 
         no_nans = original_res.dropna()
         finite = no_nans[np.isfinite(no_nans)]
