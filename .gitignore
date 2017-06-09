@@ -106,3 +106,6 @@ env/
 
 # sandbox files
 _sandbox.py
+
+# plots
+plots/

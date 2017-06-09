@@ -1,12 +1,19 @@
 import abc
+import datetime as dt
 import warnings
+from pathlib import Path
 from typing import NamedTuple, Optional, Union
 
+import matplotlib
 import numpy as np
 import pandas as pd
+
+matplotlib.use('pdf')
 from matplotlib import pyplot as plt
 
 TimeSeries = Union[pd.Series, pd.DataFrame]
+
+SAVE_FIG_PATH = Path(__file__).absolute().parents[2] / 'plots'
 
 
 class Results(NamedTuple):
@@ -82,11 +89,12 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         """
         res = []
         idx = new_data.index
-        for i in range(lag, len(new_data)):
-            if self.column:
-                data = new_data.loc[idx[i - lag:i]]
+        for i in range(1, len(new_data)):
+            start = max(i - lag, 0)
+            if self.column is None:
+                data = new_data[idx[start:i]]
             else:
-                data = new_data[idx[i - lag:i]]
+                data = new_data.iloc[start:i]
 
             res.append(self.forecast_from_unrelated(data, steps=1))
         res_pd = pd.concat(res)  # type: pd.Series
@@ -132,6 +140,8 @@ class BaseModel(object, metaclass=abc.ABCMeta):
                 lag: int = 10,
                 show_plots: bool = False,
                 to_print: bool = False,
+                save_plots: bool = False,
+                plot_args: Optional[dict] = None,
                 ) -> Results:
         """
         Plots train and test (if provided) data and returns simple statistics object.
@@ -140,8 +150,13 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         :param lag: number of steps to predict from
         :param show_plots: if `True` the plots are shown
         :param to_print:  if `True` the simple statistics are printed
+        :param save_plots:  if `True` the figures are saved
+        :param plot_args: arguments for `matplotlib` (title, ylabel) 
         :return: Simple statistics on test data (SSE, R^2)
         """
+        if plot_args is None:
+            plot_args = {'title': str(self) + dt.datetime.now().strftime('.%M%S')}
+
         if self.column is None:
             sse = (self.resid ** 2).sum()
         else:
@@ -150,7 +165,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         sst = ((self._train_plot - self._train_plot.mean()) ** 2).sum()
         train_res = Results(sse=sse, sst=sst)
 
-        plt.figure(str(self))
+        plt.figure(plot_args.get('title', str(self)))
 
         self._train_plot.plot()
         if self.column is None:
@@ -163,7 +178,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
             if steps is None:
                 n_test_samples = len(self._test_plot)
             else:
-                n_test_samples = min(len(self._test_plot), steps + lag)
+                n_test_samples = min(len(self._test_plot), steps)
 
             self._test_plot.plot()
 
@@ -183,6 +198,13 @@ class BaseModel(object, metaclass=abc.ABCMeta):
 
         if to_print:
             self.print(train_res, unrel_res)
+
+        plt.ylabel(plot_args.get('ylabel', '').capitalize() + ' ' + (self.column or self._train.name))
+        plt.legend(['train data', 'predicted train data', 'test data', 'predicted test data'], loc='best')
+
+        if save_plots:
+            SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
+            plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '.pdf')))
 
         if show_plots:
             plt.show()
