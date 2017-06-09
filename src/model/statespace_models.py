@@ -1,6 +1,7 @@
 """
 Useful link:
 http://www.statsmodels.org/stable/examples/notebooks/generated/statespace_sarimax_stata.html
+http://vmm.math.uci.edu/ODEandCM/PDF_Files/Appendices/AppendixI.pdf
 
 How to predict from unrelated dataset with SARIMAX
 https://github.com/statsmodels/statsmodels/issues/2577
