@@ -5,12 +5,10 @@ http://www.statsmodels.org/stable/examples/notebooks/generated/statespace_sarima
 How to predict from unrelated dataset with SARIMAX
 https://github.com/statsmodels/statsmodels/issues/2577
 """
-import json
-from pathlib import Path
+
 from typing import Optional, Type
 
 import pandas as pd
-import statsmodels
 from statsmodels import api as sm
 
 from .base import BaseModel, TimeSeries
@@ -38,49 +36,16 @@ class Model(BaseModel):
             time_series_train: TimeSeries,
             time_series_test: Optional[TimeSeries] = None,
             model: Type[ModelClass] = SARIMAX,
-            load: bool = False,
             **kwargs
     ):
 
         super(Model, self).__init__(time_series_train, time_series_test, **kwargs)
-        if load:
-            self._load()
-        else:
-            self._model = model(endog=self._train, **kwargs)
-            self._model_result = self._model.fit(disp=False)
-            self._save()
+
+        self._model = model(endog=self._train, **kwargs)
+        self._model_result = self._model.fit(disp=False)
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._model.__class__.__name__})'
-
-    def _save(self, filename: str = 'params_dump'):
-        """
-        Saves all the necessary parameters to a json file in current working directory.
-
-        :param filename:
-        """
-        with (Path.cwd() / filename).open('w') as f:
-            to_write = {'params': self._model_result.params.to_dict(),
-                        'kwargs': self._kwargs,
-                        'model': str(type(self._model))}
-            f.write(json.dumps(to_write, indent=4))
-
-    def _load(self, filename: str = 'params_dump'):
-        """
-        Loads and constructs model from saved parameters.
-
-        .. warning: implemented with `eval`, which could be potentially unsafe.
-
-        :param filename:
-        """
-        with (Path.cwd() / filename).open('r') as f:
-            read_dict = json.loads(f.read())
-
-        model_class = eval(read_dict['model'].replace('class', '').replace('\'', '').strip("<> "))
-        self._kwargs = read_dict['kwargs']
-
-        self._model = model_class(endog=self._train, **self._kwargs)
-        self._model_result = self._model.filter(pd.Series(read_dict['params']))
 
     def forecast_from_unrelated(self, new_data: TimeSeries, steps: int = 1, **kwargs) -> pd.Series:
         """
