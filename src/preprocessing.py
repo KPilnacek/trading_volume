@@ -21,11 +21,12 @@ http://www.seanabu.com/2016/03/22/time-series-seasonal-ARIMA-model-in-python/
 A comprehensive beginner’s guide to create a Time Series Forecast (with Codes in Python)
 https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/
 """
+import warnings
 from typing import Optional, List
 
 import numpy as np
 import pandas as pd
-import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import statsmodels.api as sm

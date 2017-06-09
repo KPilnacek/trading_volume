@@ -2,12 +2,12 @@ from pathlib import Path
 
 import pandas as pd
 
-SP_DATA = Path(__file__).absolute().parents[1] / 'data' / '^GSPC.csv'
+DATA_PATH = Path(__file__).absolute().parents[1] / 'data'
 
 
-def get_data(interpolate: bool = True) -> pd.DataFrame:
+def get_data(filename: str = '^GSPC.csv', interpolate: bool = True) -> pd.DataFrame:
     # the data are manually pre-downloaded as it seems that Yahoo API does not work...
-    res = pd.DataFrame.from_csv(SP_DATA)
+    res = pd.DataFrame.from_csv(DATA_PATH / filename)
     res = res.asfreq('B')  # type: pd.DataFrame
 
     if interpolate:

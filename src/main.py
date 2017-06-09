@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
-import json
 import sys
 from pprint import pprint
 from typing import List
 
 import _tools
 import get_data
-import preprocessing
 import model
+import preprocessing
 
 __author__ = "Krystof Pilnacek"
 __description__ = '''
@@ -21,13 +20,17 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-f',
-                        '--frequency',
+                        '--file',
+                        type=str,
+                        default='^GSPC.tsv',
+                        help='Filename of time series to be analyzed')
+
+    parser.add_argument('--frequency',
                         type=int,
                         default=90,
                         help='Frequency of seasonal effects (in days)')
 
-    parser.add_argument('-p',
-                        '--percent',
+    parser.add_argument('--fraction',
                         type=_tools.parse_num_in_range,
                         default=.8,
                         help='Fraction of provided data to be used to train model.')
@@ -36,11 +39,12 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
 
 def run(
+        filename: str = '^GSPC.csv',
         frequency: int = 90,
         frac_train: float = .8,
 ):
     # load data
-    sp = get_data.get_data()
+    sp = get_data.get_data(filename=filename)
 
     # preprocess
     df_scaled = sp.apply(preprocessing.adjust_to_seasonality, args=(['scale', ],))
@@ -78,7 +82,7 @@ def main(argv: List[str]) -> int:
 
     run(
         frequency=args.frequency,
-        frac_train=args.percent,
+        frac_train=args.fraction,
     )
 
     return 0
