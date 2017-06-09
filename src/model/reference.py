@@ -1,3 +1,5 @@
+import datetime as dt
+
 import numpy as np
 import pandas as pd
 
@@ -29,3 +31,8 @@ class Reference(BaseModel):
         res = self._train - self.fitted_values
         res[res.isnull()] = res[np.where(res.isnull())[0]+1].values
         return res
+
+    @property
+    def _impulse_responses(self):
+        impulse_rsp = self.forecast_from_unrelated(new_data=pd.Series([1], index=[dt.datetime.now()]), steps=10)
+        return impulse_rsp.reset_index(drop=True)

@@ -135,6 +135,34 @@ class BaseModel(object, metaclass=abc.ABCMeta):
               + ' ' * (len(str(self)) - 8)
               + f'unrelated SSE: {unrelated_stat.sse:7.2f}, unrelated R^2: {unrelated_stat.r2:7.4f}')
 
+    @property
+    @abc.abstractclassmethod
+    def _impulse_responses(self) -> pd.Series:
+        """
+        10 steps of response to an impulse
+        :return: the response
+        """
+        raise NotImplementedError
+
+    def plot_impulse_response(self, plot_args: dict, save_plots: bool = False):
+        """
+        Plots 10 steps of response function
+          
+        :param plot_args: arguments for plotting (title, ylabel) 
+        :param save_plots: if `True` the plots are saved
+        """
+
+        plt.figure(plot_args.get('title', str(self)) + ' impulse response')
+
+        self._impulse_responses.plot()
+
+        plt.ylabel(plot_args.get('ylabel', '').capitalize() + ' ' + (self.column or self._train.name))
+        plt.legend(['impulse response'], loc='best')
+
+        if save_plots:
+            SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
+            plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '_impulse_resp' + '.pdf')))
+
     def results(self,
                 steps: Optional[int] = None,
                 lag: int = 10,
@@ -205,6 +233,8 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         if save_plots:
             SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
             plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '.pdf')))
+
+        self.plot_impulse_response(plot_args, save_plots)
 
         if show_plots:
             plt.show()

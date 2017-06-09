@@ -75,6 +75,13 @@ class Model(BaseModel):
     def resid(self) -> pd.Series:
         return self._model_result.resid
 
+    @property
+    def _impulse_responses(self):
+        if self.column is None:
+            return self._model_result.impulse_responses(10, orthogonalized=True)
+        else:
+            return self._model_result.impulse_responses(10, orthogonalized=True)[self.column]
+
     def print(self, *args, **kwargs):
         print(self._model_result.summary())
         super().print(*args, **kwargs)
