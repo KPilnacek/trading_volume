@@ -226,10 +226,6 @@ Výsledky jsou zobrazeny na obr. \ref{fig:varmax}.
 Výsledné koeficienty determinace pro škálovaná out of sample data vychází $R^2=\num{.0985}$ a pro první diferenci škálovaných dat $R^2=\num{.1953}$.
 Horší předpověď škálovaných data a podstatně lepší předpověď první diference škálovaných dat, ve srovnání s modelem \ref{sec:sarimax}, lze vysvětlit absencí proměnných popisujících sezónní vlivy.
 
-trend='c', order=(4, 1)
-
-open, close, volume
-
 \begin{figure}[htb]
 	\begin{subfigure}[t]{.5\linewidth}
 		\centering
@@ -250,18 +246,18 @@ open, close, volume
 
 \section{Závěr}
 
-co jsem pouzil
-a co by se dalsiho dalo pouzit a jak... dummy promenne pro kalendar
+Závěrem lze konstatovat, že oba body zadání byly splněny.
+Povedlo se stáhnout data z Yahoo Finance pro dané časové období a vytvořit pro ně předpovědní model zahrnující více proměnných.
+Celkové porovnání hodnot koeficientů determinace je uvedeno v tabulce \ref{tbl:r2}.
 
 
-\todo{r na druhou...}
 \begin{table} [htbp]
 	\caption{Porovnání $R^2$ pro všechny uvažované modely}
 	\label{tbl:r2}
 	\begin{center}
-		\begin{tabular}{c c S[round-precision = 4]}
+		\begin{tabular}{c c S[round-precision = 4,]}
 			\toprule
-			Model    & Předzpracování 	& R2 	 \\
+			Model    & Předzpracování 	& 	$R$\textsuperscript{2} 	 \\
 			\midrule
 			\multirow{2}{*}{Referenční}    & škálování 	&  -.0297 \\
 			& + první dif.	& -1.7081 \\
@@ -274,6 +270,9 @@ a co by se dalsiho dalo pouzit a jak... dummy promenne pro kalendar
 	\end{center}
 \end{table}
 
+Pro zlepšení předpovědních schopností modelu \gls{varmax} by bylo možné použít ještě dalších informací, např. kalendáře očekávaných událostí pro daný den.
+Z něj by mohly být vytvořeny tzv. dummy proměnné pro daný typ události a ty použity pro předpověď.
+K dalšímu zlepšení by mohlo dojít optimalizací \gls{ar} a \gls{ma} parametrů modelu, případně zlepšením předúpravy vstupních dat odstraněním sezónnosti.
 
 \clearpage
 \singlespacing
