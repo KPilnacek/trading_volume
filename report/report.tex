@@ -88,6 +88,19 @@ Předzpracování proběhlo v následujících krocích:
 	\label{fig:preprocess}
 \end{figure}
 
+Dále byla provedena dekompozice sezónních vlivů pomocí funkce z \code{seasonal\_} \code{decompose} z balíčku \code{statsmodels} s přibližně čtvrtletní frekvencí (90 dní).
+Výsledek je vidět na obrázku \ref{fig:seasonal_anl}.
+Plyne z něj, že celkový trend objemu obchodů se ve sledovaném období lehce snižoval.
+Dále je vidět, že nějaké sezónní vlivy se v časové řadě vyskytují nicméně jejich vliv je menší než vliv neznámých činitelů (v obrázku řada Residual).
+Závěrem lze říci, že na sezónní vlivy bude muset při modelování být brán zřetel, protože se nejedná o stacionární řadu.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.85\linewidth]{../plots/seasonal_anl}
+	\caption{Dekompozice sezónních vlivů na objem obchodů}
+	\label{fig:seasonal_anl}
+\end{figure}
+
 
 \section{Modely}
 
