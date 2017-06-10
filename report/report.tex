@@ -1,7 +1,67 @@
-\documentclass[]{article}
+\documentclass[a4paper,12pt, czech]{article}
 \usepackage[utf8]{inputenc} %Coding of input file - no problems with glyphs (ěš)
 \usepackage[T1]{fontenc} %Coding of output file - no problems with glyphs (ěš)
-\usepackage[czech]{babel} %Hyphenation and typesetting of loaded langs
+\usepackage{babel} %Hyphenation and typesetting of loaded langs
+\usepackage{datetime}
+
+\usepackage{todonotes} %Adding todo notes
+\usepackage{siunitx} %typography of units
+\sisetup{separate-uncertainty=true,
+	range-units = single}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{graphicx} %Pictures
+
+\usepackage{multirow} %Multi column and multirow tables
+\usepackage{booktabs} %Better tables
+
+\usepackage[pdftex,                %%% hyper-references for pdflatex
+bookmarks=true,%                   %%% generate bookmarks ...
+bookmarksnumbered=true,%           %%% ... with numbers
+hypertexnames=false,%              %%% needed for correct links to figures !!!
+breaklinks=true,%                  %%% break links if exceeding a single line
+%linkbordercolor={0 0 1},
+pdfauthor={Krystof Pilnacek},
+pdftitle={Report z domaciho ukolu},
+pdfkeywords={casove rady, akcie, obchodovany objem},
+pdfsubject={Domaci ukol}]{hyperref}
+
+\usepackage{xcolor} %Setting colors of references
+\definecolor{dark-red}{rgb}{.4,.15,.15}
+\definecolor{dark-blue}{rgb}{.15,.15,.4}
+\definecolor{medium-blue}{rgb}{0,0,.5}
+\hypersetup{
+	colorlinks, linkcolor={dark-red},
+	citecolor={dark-blue}, urlcolor={medium-blue} %url can be magenta 
+}
+
+
+\usepackage{parskip} %No indentation of first line on paragraph and line 
+\usepackage{setspace} %Set spacing between lines
+\setstretch{1.15}
+
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+
+%===========Glossary================
+\usepackage[acronym,toc,nopostdot, nonumberlist,nomain,shortcuts]{glossaries}%nogroupskip
+%\usepackage{glossaries-extra}
+\renewcommand{\glsgroupskip}{}% make nothing happen between groups 
+
+%\newacronym{acr}{}{\vspace*{-7.65mm}}
+
+\setacronymstyle{long-short}
+
+\newacronym[description=Sezónní autoregresní integrovaný klouzavý průměr]{sarimax}{SARIMAX}{Seasonal Autoregressive Integrated Moving Average}
+\newacronym[description=Vektorový autoregresní klouzavý průměr]{varmax}{VARMAX}{Vector Auto Regressive Moving Average}
+\newacronym[description=Autoregrese]{ar}{AR}{Auto Regression}
+\newacronym[description=Integrace]{i}{I}{Integration}
+\newacronym[description=Klouzavý průměr]{ma}{MA}{Moving Average}
+
+\makenoidxglossaries
+
 
 
 %opening
@@ -12,10 +72,214 @@
 
 \maketitle
 
-\begin{abstract}
+\clearpage
 
-\end{abstract}
+\section{Zadání} \label{sec:zadani}
 
-\section{}
+\begin{enumerate}
+	\item Z Yahoo Finance stáhněte denní data akciového indexu S\&P 500 za období \formatdate{1}{1}{2010} -- \formatdate{31}{7}{2014}. \label{list:zadani_data}
+	
+	\item  Navrhněte a nakalibrujte několik různých modelů $E\left[v_{d+1}|F_d\right]$, kde $v_{d+1}$ je objem obchodů (volume) v den $d+1$ a $F_d$ je veškerá informace do dne $d$ (včetně). \label{list:zadani_modely}
+	Odhadněte přesnost modelů (jako kritérium použijte $SSE$, resp. $R^2$) na testovacích (out of sample) datech a porovnejte tuto přesnost s referenčním modelem $\hat{E}\left[v_{d+1}\right] = v_d$.
+	
+\end{enumerate}
+
+\section{Použité programy}
+
+Kód pro analýzu časové řady byl vytvořen v programovacím jazyku \code{Python 3.6.1}.
+
+Pro samotné zpracování a zobrazení dat byly navíc použity balíčky \code{numpy (1.13.0)}, \code{pandas (0.20.2)}, \code{matplotlib (2.0.2)} a \code{statsmodels (0.8.0)}.
+
+\section{Vstupní data}
+
+Vstupní byla ručně stažena z webu \href{https://finance.yahoo.com/quote/\%5EGSPC/history?period1=1262300400\&period2=1497045600\&interval=1d\&filter=history\&frequency=1d}{Yahoo Finance}.
+Byly zkoušeny i další metody získávání dat z tohoto webu (balíčky Pythonu \code{yahoo-finance} a \code{pandas-datareader} či API Yahoo Finance), nicméně bez úspěchu.
+
+Vstupní data jsou tedy staticky uložena v adresáři \code{./data/} v souboru nazvaném \code{\^{}GSPC.csv}.
+
+\subsection{Zpracování dat}
+
+Tabulková data byla načtena z \code{csv} souboru jako \code{pandas.DataFrame}.
+Předzpracování proběhlo v následujících krocích:
+
+\begin{enumerate}
+	\item nastavení frekvence dat na pracovní dny,
+	\item doplnění chybějících dat interpolací,
+	\item rozdělení dat na testovací (out of sample) a kalibrační část (pro kalibraci použito 80\% dat),
+	\item škálování dat do řádu $10^0$ (viz obr. \ref{fig:preprocess}), a
+	\item variantně vytvoření první diference dat (viz obr. \ref{fig:preprocess}).
+\end{enumerate}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.85\linewidth]{../plots/preprocessing}
+	\caption{Předzpracování použitých dat pomocí škálování (modrá řada) a následně první diference (oranžová řada)}
+	\label{fig:preprocess}
+\end{figure}
+
+Dále byla provedena dekompozice sezónních vlivů pomocí funkce z \code{seasonal\_} \code{decompose} z balíčku \code{statsmodels} s přibližně čtvrtletní frekvencí (90 dní).
+Výsledek je vidět na obrázku \ref{fig:seasonal_anl}.
+Plyne z něj, že celkový trend objemu obchodů se ve sledovaném období lehce snižoval.
+Dále je vidět, že nějaké sezónní vlivy se v časové řadě vyskytují nicméně jejich vliv je menší než vliv neznámých činitelů (v obrázku řada Residual).
+Závěrem lze říci, že na sezónní vlivy bude muset při modelování být brán zřetel, protože se nejedná o stacionární řadu.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.85\linewidth]{../plots/seasonal_anl}
+	\caption{Dekompozice sezónních vlivů na objem obchodů}
+	\label{fig:seasonal_anl}
+\end{figure}
+
+
+\section{Modely}
+
+Pro modelování časových řad byly použity state space modely (modely stavového prostoru) \gls{sarimax} a \gls{varmax} z balíčku \code{statsmodels}.
+První z modelů byl vybrán proto, že umožňuje popsat sezónní vlivy interně v modelu.
+Druhý model byl vybrán proto, že dle bodu \ref{list:zadani_modely} v \nameref{sec:zadani} bylo nutno do modelu zahrnout veškerá dostupná data, tedy nejen předchozí data o objemech obchodů.
+
+\subsection{Referenční model}
+
+Referenční model byl sestaven podle bodu \ref{list:zadani_modely} v \nameref{sec:zadani}, tedy
+
+\begin{equation}\label{eq:reference}
+\hat{E}\left[v_{d+1}\right] = v_d.
+\end{equation}
+
+Konečná implementace vypadala tedy tak, že pro objem obchodů předpovídaných pro následující den byl dosazen objem obchodů ze dne současného, tedy $v_{d+1} = v_d$.
+Pro škálovaná out of sample data vychází $R^2=\num{-.0297}$ a pro první diferenci škálovaných dat $R^2=\num{-1.7081}$.
+V prvním případě je tedy předpověď tohoto modelu o něco málo horší než, kdybychom brali pouze průměr z těchto dat.
+V případě druhém je výrazně horší.
+V každém případě nám to poskytuje dobré porovnání pro méně naivní modely.
+
+\subsection{\glsentryshort{sarimax}} \label{sec:sarimax}
+
+Model \gls{sarimax} je modelem, který pro předpověď v následujícím dni používá pouze tu proměnnou, která je předpovídána, tedy 
+
+\begin{equation}\label{eq:sarimax}
+\hat{E}\left[v_{d+1}|v_d\right],
+\end{equation}
+
+což nesplňuje bod \ref{list:zadani_modely} v \nameref{sec:zadani}.
+Nicméně je v něm možno postihnout sezónní vlivy i bez nutnosti úpravy vstupních dat.
+Proto byl také v analýze ponechán.
+Pro účely tohoto úkolu byla použita implementace z balíčku \code{statsmodels}.
+
+Pro určení parametrů modelu pro \gls{ar} a \gls{ma} se běžně používají grafy autokorelačních a parciálních autokorelačních funkcí\footnote{viz např.: \href{https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/}{A comprehensive beginner’s guide to create a Time Series Forecast (with Codes in Python)}}.
+Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}.
+
+\begin{figure}[htb]
+	\begin{subfigure}[t]{1\linewidth}
+		\centering
+		\includegraphics[width=1\linewidth]{../plots/acf}
+		\caption{Autokorelační funkce}
+		\label{fig:acf}
+	\end{subfigure}
+	\begin{subfigure}[t]{1\linewidth}
+		\centering
+		\includegraphics[width=1\linewidth]{../plots/pacf}
+		\caption{Parciální autokorelační funkce}
+		\label{fig:pacf}
+	\end{subfigure}
+	\caption{Autokorelační funkce použité pro určení \gls{ar} a \gls{ma} parametrů state space modelů.}\label{fig:auto_func}
+\end{figure}
+
+Z obr. \ref{fig:auto_func} vyplynulo, že by bylo vhodné použít parametry \gls{ar} a \gls{ma} $= 6$.
+Hodnota parametru \gls{i} byla zvolena $= 1$, protože nás zajímá především první diference pro předpověď následujícího dne.
+Dále byl do modelu zahrnut lineární trend s konstantou.
+Tyto parametry byly vyzkoušeny nicméně optimalizace pro tyto parametry nedoběhla do konce.
+Poté byly parametry použity následovně \gls{ar} $= 4$, \gls{i} $= 1$ a \gls{ma} $= 4$.
+Výsledky jsou zobrazeny v obr. \ref{fig:sarimax}.
+Výsledné koeficienty determinace pro škálovaná out of sample data vychází $R^2=\num{.2074}$ a pro první diferenci škálovaných dat $R^2=\num{-.0087}$.
+V prvním i druhém případě tedy došlo ke zlepšení oproti referenčnímu modelu.
+
+\begin{figure}[htb]
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(SARIMAX)_scaled}
+		\caption{Fit a predikce škálovaných dat}
+		\label{fig:sarimax_scaled}
+	\end{subfigure}
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(SARIMAX)_first_diff}
+		\caption{Fit a predikce škálovaných dat s první diferencí}
+		\label{fig:sarimax_fd}
+	\end{subfigure}
+	\caption{Výsledky modelu \gls{sarimax}.}\label{fig:sarimax}
+\end{figure}
+
+
+\clearpage
+
+\subsection{\glsentryshort{varmax}}
+
+
+V modelu \gls{varmax} je pro předpověď bráno více proměnných. Model je také dokáže všechny předpovědět a tudíž dokáže splnit podmínku z bodu \ref{list:zadani_modely} v \nameref{sec:zadani}.
+
+\begin{equation}\label{eq:varimax}
+\hat{E}\left[v_{d+1}|F_d\right]
+\end{equation}
+
+Parametry použité pro výpočty v tomto úkolu byly následující \gls{ar} $= 4$, \gls{ma} $= 1$ s konstantním trendem.
+Pro předpověď objemu obchodů (volume) byly použity hodnoty denní otevírací (open) a uzavírací ceny (close).
+V principu by šlo použít i další proměnné, nicméně přidání hodnot denní nejvyšší a nejnižší ceny (high, low) nepřineslo zlepšení předpovědních schopností a tudíž nebyly pro rychlost výpočtů použity.
+Pro účely tohoto úkolu byla použita implementace z balíčku \code{statsmodels}.
+
+Výsledky jsou zobrazeny na obr. \ref{fig:varmax}.
+Výsledné koeficienty determinace pro škálovaná out of sample data vychází $R^2=\num{.0985}$ a pro první diferenci škálovaných dat $R^2=\num{.1953}$.
+Horší předpověď škálovaných data a podstatně lepší předpověď první diference škálovaných dat, ve srovnání s modelem \ref{sec:sarimax}, lze vysvětlit absencí proměnných popisujících sezónní vlivy.
+
+\begin{figure}[htb]
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(VARMAX)_scaled}
+		\caption{Fit a predikce škálovaných dat}
+		\label{fig:varmax_scaled}
+	\end{subfigure}
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(VARMAX)_first_diff}
+		\caption{Fit a predikce škálovaných dat s první diferencí}
+		\label{fig:varmax_fd}
+	\end{subfigure}
+	\caption{Výsledky modelu \gls{varmax}.}\label{fig:varmax}
+\end{figure}
+
+\clearpage
+
+\section{Závěr}
+
+Závěrem lze konstatovat, že oba body zadání byly splněny.
+Povedlo se stáhnout data z Yahoo Finance pro dané časové období a vytvořit pro ně předpovědní model zahrnující více proměnných.
+Celkové porovnání hodnot koeficientů determinace je uvedeno v tabulce \ref{tbl:r2}.
+
+
+\begin{table} [htbp]
+	\caption{Porovnání $R^2$ pro všechny uvažované modely}
+	\label{tbl:r2}
+	\begin{center}
+		\begin{tabular}{c c S[round-precision = 4,]}
+			\toprule
+			Model    & Předzpracování 	& 	$R$\textsuperscript{2} 	 \\
+			\midrule
+			\multirow{2}{*}{Referenční}    & škálování 	&  -.0297 \\
+			& + první dif.	& -1.7081 \\
+			\multirow{2}{*}{\gls{sarimax}} & škálování   &   .2074 \\
+			& + první dif.   &  -.0087 \\
+			\multirow{2}{*}{\gls{varmax}}  & škálování   &   .0985 \\
+			& + první dif.   &   .1953 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+Pro zlepšení předpovědních schopností modelu \gls{varmax} by bylo možné použít ještě dalších informací, např. kalendáře očekávaných událostí pro daný den.
+Z něj by mohly být vytvořeny tzv. dummy proměnné pro daný typ události a ty použity pro předpověď.
+K dalšímu zlepšení by mohlo dojít optimalizací \gls{ar} a \gls{ma} parametrů modelu, případně zlepšením předúpravy vstupních dat odstraněním sezónnosti.
+
+\clearpage
+\singlespacing
+\printnoidxglossary[type=acronym,title=Seznam zkratek,sort=word]
+
 
 \end{document}
