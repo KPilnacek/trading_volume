@@ -54,11 +54,11 @@ pdfsubject={Domaci ukol}]{hyperref}
 
 \setacronymstyle{long-short}
 
-\newacronym[description=napsat cesky \todo{dodelat}]{sarimax}{SARIMAX}{Seasonal ... anglicky}
-\newacronym[description=napsat cesky \todo{dodelat}]{varmax}{VARMAX}{Vector Auto Regressive ... anglicky}
-\newacronym[description=napsat cesky \todo{dodelat}]{ar}{AR}{Auto Regressive ... anglicky}
-\newacronym[description=napsat cesky \todo{dodelat}]{i}{I}{In... anglicky}
-\newacronym[description=napsat cesky \todo{dodelat}]{ma}{MA}{Moving Average... anglicky}
+\newacronym[description=Sezónní autoregresní integrovaný klouzavý průměr]{sarimax}{SARIMAX}{Seasonal Autoregressive Integrated Moving Average}
+\newacronym[description=Vektorový autoregresní klouzavý průměr]{varmax}{VARMAX}{Vector Auto Regressive Moving Average}
+\newacronym[description=Autoregrese]{ar}{AR}{Auto Regression}
+\newacronym[description=Integrace]{i}{I}{Integration}
+\newacronym[description=Klouzavý průměr]{ma}{MA}{Moving Average}
 
 \makenoidxglossaries
 
@@ -133,7 +133,7 @@ Závěrem lze říci, že na sezónní vlivy bude muset při modelování být b
 
 \section{Modely}
 
-Pro modelování časových řad byly použity statespace modely \todo{přeložit a rozepsat} \gls{sarimax} a \gls{varmax} z balíčku \code{statsmodels}.
+Pro modelování časových řad byly použity state space modely (modely stavového prostoru) \gls{sarimax} a \gls{varmax} z balíčku \code{statsmodels}.
 První z modelů byl vybrán proto, že umožňuje popsat sezónní vlivy interně v modelu.
 Druhý model byl vybrán proto, že dle bodu \ref{list:zadani_modely} v \nameref{sec:zadani} bylo nutno do modelu zahrnout veškerá dostupná data, tedy nejen předchozí data o objemech obchodů.
 
@@ -162,6 +162,7 @@ Model \gls{sarimax} je modelem, který pro předpověď v následujícím dni po
 což nesplňuje bod \ref{list:zadani_modely} v \nameref{sec:zadani}.
 Nicméně je v něm možno postihnout sezónní vlivy i bez nutnosti úpravy vstupních dat.
 Proto byl také v analýze ponechán.
+Pro účely tohoto úkolu byla použita implementace z balíčku \code{statsmodels}.
 
 Pro určení parametrů modelu pro \gls{ar} a \gls{ma} se běžně používají grafy autokorelačních a parciálních autokorelačních funkcí.
 Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}.
@@ -179,10 +180,8 @@ Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}
 		\caption{Parciální autokorelační funkce}
 		\label{fig:pacf}
 	\end{subfigure}
-	\caption{Autokorelační funkce použité pro určení \gls{ar} a \gls{ma} parametrů statespace modelů.}\label{fig:auto_func}
+	\caption{Autokorelační funkce použité pro určení \gls{ar} a \gls{ma} parametrů state space modelů.}\label{fig:auto_func}
 \end{figure}
-
-\todo{prelozit statspace ...}
 
 Z obr. \ref{fig:auto_func} vyplynulo, že by bylo vhodné použít parametry \gls{ar} a \gls{ma} $= 6$.
 Hodnota parametru \gls{i} byla zvolena $= 1$, protože nás zajímá především první diference pro předpověď následujícího dne.
@@ -222,6 +221,8 @@ V modelu \gls{varmax} je pro předpověď bráno více proměnných. Model je ta
 Parametry použité pro výpočty v tomto úkolu byly následující \gls{ar} $= 4$, \gls{ma} $= 1$ s konstantním trendem.
 Pro předpověď objemu obchodů (volume) byly použity hodnoty denní otevírací (open) a uzavírací ceny (close).
 V principu by šlo použít i další proměnné, nicméně přidání hodnot denní nejvyšší a nejnižší ceny (high, low) nepřineslo zlepšení předpovědních schopností a tudíž nebyly pro rychlost výpočtů použity.
+Pro účely tohoto úkolu byla použita implementace z balíčku \code{statsmodels}.
+
 Výsledky jsou zobrazeny na obr. \ref{fig:varmax}.
 Výsledné koeficienty determinace pro škálovaná out of sample data vychází $R^2=\num{.0985}$ a pro první diferenci škálovaných dat $R^2=\num{.1953}$.
 Horší předpověď škálovaných data a podstatně lepší předpověď první diference škálovaných dat, ve srovnání s modelem \ref{sec:sarimax}, lze vysvětlit absencí proměnných popisujících sezónní vlivy.
