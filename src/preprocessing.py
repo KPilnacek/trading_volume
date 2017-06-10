@@ -135,21 +135,25 @@ if __name__ == '__main__':
     df = get_data()
 
     # show different adjustments to seasonality
-    transformations_ = [['first_diff', 'log', 'decompose_resid'],
-                        ['log', 'first_diff', 'decompose_resid'],
-                        ['log', 'decompose_resid']]
+    transformations_ = [['scale'],
+                        ['scale', 'first_diff'], ]
     for tr in transformations_:
         adjust_to_seasonality(df.volume, transformations=tr).plot()
+    plt.ylabel('Volume')
     plt.legend([str(tr) for tr in transformations_], loc='best')
     plt.title('Adjustment to seasonality with different transformations')
+
+    _tools.save_fig('preprocessing', 1)
 
     # show seasonal decomposition of volume with different frequencies
     df['first_diff'] = df.volume - df.volume.shift(1)
     df.dropna(inplace=True)
 
     for freq_ in range(30, 120, 30):
-        res_ = sm.tsa.seasonal_decompose(np.log(df.volume), freq=freq_)
+        res_ = sm.tsa.seasonal_decompose(adjust_to_seasonality(df.volume, ['scale', ]), freq=freq_)
         resplot = res_.plot()
-        resplot.suptitle(f'Analyzed with frequency {freq_} days')
+        resplot.suptitle(f'Volume seasonal decomposition with frequency {freq_} days')
+
+    _tools.save_fig('seasonal_anl', 4)
 
     plt.show()

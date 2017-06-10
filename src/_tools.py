@@ -1,9 +1,13 @@
 import argparse
 import functools
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+SAVE_FIG_PATH = Path(__file__).absolute().parents[1] / 'plots'
 
 
 def is_number(number: Any) -> bool:
@@ -67,6 +71,12 @@ def drop_undefined(func):
         return finite
     return wrapper
 
+
+def save_fig(title: str, figname: Optional[Union[str, int, float]] = None):
+    plt.figure((figname or title))
+
+    SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
+    plt.savefig(str(SAVE_FIG_PATH / (title + '.pdf')), format='pdf')
 
 # only for testing...
 if __name__ == '__main__':

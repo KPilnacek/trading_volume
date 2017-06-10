@@ -1,19 +1,15 @@
 import abc
 import datetime as dt
 import warnings
-from pathlib import Path
 from typing import NamedTuple, Optional, Union
 
-import matplotlib
 import numpy as np
 import pandas as pd
-
-matplotlib.use('pdf')
 from matplotlib import pyplot as plt
 
-TimeSeries = Union[pd.Series, pd.DataFrame]
+from _tools import save_fig
 
-SAVE_FIG_PATH = Path(__file__).absolute().parents[2] / 'plots'
+TimeSeries = Union[pd.Series, pd.DataFrame]
 
 
 class Results(NamedTuple):
@@ -152,7 +148,8 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         :param save_plots: if `True` the plots are saved
         """
 
-        plt.figure(plot_args.get('title', str(self)) + ' impulse response')
+        figname = plot_args.get('title', str(self)) + '_impulse_resp'
+        plt.figure(figname)
 
         self._impulse_responses.plot()
 
@@ -160,8 +157,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         plt.legend(['impulse response'], loc='best')
 
         if save_plots:
-            SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
-            plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '_impulse_resp' + '.pdf')))
+            save_fig(figname)
 
     def _plot(self, data: pd.Series, fit: TimeSeries):
         """
@@ -236,8 +232,7 @@ class BaseModel(object, metaclass=abc.ABCMeta):
         plt.legend(['train data', 'predicted train data', 'test data', 'predicted test data'], loc='best')
 
         if save_plots:
-            SAVE_FIG_PATH.mkdir(parents=True, exist_ok=True)
-            plt.savefig(str(SAVE_FIG_PATH / (plot_args.get('title', str(self)) + '.pdf')))
+            save_fig(plot_args.get('title', str(self)))
 
         self.plot_impulse_response(plot_args, save_plots)
 

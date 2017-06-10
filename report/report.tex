@@ -3,7 +3,22 @@
 \usepackage[T1]{fontenc} %Coding of output file - no problems with glyphs (ěš)
 \usepackage[czech]{babel} %Hyphenation and typesetting of loaded langs
 \usepackage{datetime}
-\usepackage{hyperref}
+
+\usepackage{caption}
+\usepackage{graphicx} %Pictures
+
+\usepackage[pdftex,                %%% hyper-references for pdflatex
+bookmarks=true,%                   %%% generate bookmarks ...
+bookmarksnumbered=true,%           %%% ... with numbers
+hypertexnames=false,%              %%% needed for correct links to figures !!!
+breaklinks=true,%                  %%% break links if exceeding a single line
+%linkbordercolor={0 0 1},
+pdfauthor={Krystof Pilnacek},
+pdftitle={Report z domaciho ukolu},
+pdfkeywords={casove rady, akcie, obchodovany objem},
+pdfsubject={Domaci ukol}]{hyperref}
+\usepackage{cleveref}
+
 
 \usepackage{parskip} %No indentation of first line on paragraph and line 
 \usepackage{setspace} %Set spacing between lines
@@ -54,14 +69,21 @@ Předzpracování proběhlo v následujících krocích:
 	\item nastavení frekvence dat na pracovní dny,
 	\item doplnění chybějících dat interpolací,
 	\item rozdělení dat na testovací (out of sample) a kalibrační část (pro kalibraci použito 80\% dat),
-	\item škálování dat do řádu $10^0$, a
+	\item škálování dat do řádu $10^0$ (viz \cref{fig:preprocess} ), a
 	\item variantně vytvoření první diference dat.
 \end{enumerate}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.85\linewidth]{../plots/preprocessing}
+	\caption{Předzpracování použitých dat pomocí škálování (modrá řada) a následně první diference (oranžová řada)}
+	\label{fig:preprocess}
+\end{figure}
 
-\clearpage
 
 \section{Modely}
+
+
 
 \subsection{Referenční model}
 
