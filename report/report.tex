@@ -10,6 +10,7 @@
 	range-units = single}
 
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{graphicx} %Pictures
 
 \usepackage[pdftex,                %%% hyper-references for pdflatex
@@ -52,6 +53,9 @@ pdfsubject={Domaci ukol}]{hyperref}
 
 \newacronym[description=napsat cesky \todo{dodelat}]{sarimax}{SARIMAX}{Seasonal ... anglicky}
 \newacronym[description=napsat cesky \todo{dodelat}]{varmax}{VARMAX}{Vector Auto Regressive ... anglicky}
+\newacronym[description=napsat cesky \todo{dodelat}]{ar}{AR}{Auto Regressive ... anglicky}
+\newacronym[description=napsat cesky \todo{dodelat}]{i}{I}{In... anglicky}
+\newacronym[description=napsat cesky \todo{dodelat}]{ma}{MA}{Moving Average... anglicky}
 
 \makenoidxglossaries
 
@@ -145,6 +149,37 @@ V případě druhém je výrazně horší.
 V každém případě nám to poskytuje dobré porovnání pro méně naivní modely.
 
 \subsection{\glsentryshort{sarimax}}
+
+Model \gls{sarimax} je modelem, který pro předpověď v následujícím dni používá pouze tu proměnnou, která je předpovídána, tedy 
+
+\begin{equation}\label{eq:sarimax}
+\hat{E}\left[v_{d+1}|v_d\right],
+\end{equation}
+
+což nesplňuje bod \ref{list:zadani_modely} v \nameref{sec:zadani}.
+Nicméně je v něm možno postihnout sezónní vlivy i bez nutnosti úpravy vstupních dat.
+Proto byl také v analýze ponechán.
+
+Pro určení parametrů modelu pro \gls{ar} a \gls{ma} se běžně používají grafy autokorelačních a parciálních autokorelačních funkcí.
+Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}.
+
+\begin{figure}[htb]
+	\begin{subfigure}[t]{1\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/acf}
+		\caption{Autokorelační funkce}
+		\label{fig:acf}
+	\end{subfigure}
+	\begin{subfigure}[t]{1\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/pacf}
+		\caption{Parciální autokorelační funkce}
+		\label{fig:pacf}
+	\end{subfigure}
+	\caption{Autokorelační funkce použité pro určení \gls{ar} a \gls{ma} parametrů statespace  modelů.}\label{fig:auto_func}
+\end{figure}
+
+
 
 \subsection{\glsentryshort{varmax}}
 

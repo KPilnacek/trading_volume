@@ -12,7 +12,7 @@ from typing import Optional, Type
 import pandas as pd
 from statsmodels import api as sm
 
-from .base import BaseModel, TimeSeries
+from model.base import BaseModel, TimeSeries
 
 ModelResult = sm.tsa.statespace.MLEResults
 ModelClass = sm.tsa.statespace.MLEModel
@@ -85,3 +85,22 @@ class Model(BaseModel):
     def print(self, *args, **kwargs):
         print(self._model_result.summary())
         super().print(*args, **kwargs)
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    from get_data import get_data
+    from preprocessing import adjust_to_seasonality
+    from _tools import save_fig
+
+    df = get_data()
+    volume = adjust_to_seasonality(df.volume, ['scale', ])
+
+    # ACF and PACF
+    fig = plt.figure(figsize=(12, 4))
+    ax1 = fig.add_subplot(111)
+    fig = sm.graphics.tsa.plot_acf(volume, lags=100, ax=ax1)
+    fig = plt.figure(figsize=(12, 4))
+    ax2 = fig.add_subplot(111)
+    fig = sm.graphics.tsa.plot_pacf(volume, lags=50, ax=ax2)
+    save_fig('acf', 1)
+    save_fig('pacf', 2)
