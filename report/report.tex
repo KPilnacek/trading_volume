@@ -151,7 +151,7 @@ V prvním případě je tedy předpověď tohoto modelu o něco málo horší ne
 V případě druhém je výrazně horší.
 V každém případě nám to poskytuje dobré porovnání pro méně naivní modely.
 
-\subsection{\glsentryshort{sarimax}}
+\subsection{\glsentryshort{sarimax}} \label{sec:sarimax}
 
 Model \gls{sarimax} je modelem, který pro předpověď v následujícím dni používá pouze tu proměnnou, která je předpovídána, tedy 
 
@@ -211,6 +211,20 @@ V prvním i druhém případě tedy došlo ke zlepšení oproti referenčnímu m
 
 
 \subsection{\glsentryshort{varmax}}
+
+
+V modelu \gls{varmax} je pro předpověď bráno více proměnných. Model je také dokáže všechny předpovědět a tudíž dokáže splnit podmínku z bodu \ref{list:zadani_modely} v \nameref{sec:zadani}.
+
+\begin{equation}\label{eq:varimax}
+\hat{E}\left[v_{d+1}|F_d\right]
+\end{equation}
+
+Parametry použité pro výpočty v tomto úkolu byly následující \gls{ar} $= 4$, \gls{ma} $= 1$ s konstantním trendem.
+Pro předpověď objemu obchodů (volume) byly použity hodnoty denní otevírací (open) a uzavírací ceny (close).
+V principu by šlo použít i další proměnné, nicméně přidání hodnot denní nejvyšší a nejnižší ceny (high, low) nepřineslo zlepšení předpovědních schopností a tudíž nebyly pro rychlost výpočtů použity.
+Výsledky jsou zobrazeny na obr. \ref{fig:varmax}.
+Výsledné koeficienty determinace pro škálovaná out of sample data vychází $R^2=\num{.0985}$ a pro první diferenci škálovaných dat $R^2=\num{.1953}$.
+Horší předpověď škálovaných data a podstatně lepší předpověď první diference škálovaných dat, ve srovnání s modelem \ref{sec:sarimax}, lze vysvětlit absencí proměnných popisujících sezónní vlivy.
 
 trend='c', order=(4, 1)
 
