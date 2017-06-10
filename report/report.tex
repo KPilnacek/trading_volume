@@ -164,19 +164,19 @@ Nicméně je v něm možno postihnout sezónní vlivy i bez nutnosti úpravy vst
 Proto byl také v analýze ponechán.
 Pro účely tohoto úkolu byla použita implementace z balíčku \code{statsmodels}.
 
-Pro určení parametrů modelu pro \gls{ar} a \gls{ma} se běžně používají grafy autokorelačních a parciálních autokorelačních funkcí.
+Pro určení parametrů modelu pro \gls{ar} a \gls{ma} se běžně používají grafy autokorelačních a parciálních autokorelačních funkcí\footnote{viz např.: \href{https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/}{A comprehensive beginner’s guide to create a Time Series Forecast (with Codes in Python)}}.
 Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}.
 
 \begin{figure}[htb]
 	\begin{subfigure}[t]{1\linewidth}
 		\centering
-		\includegraphics[width=1.1\linewidth]{../plots/acf}
+		\includegraphics[width=1\linewidth]{../plots/acf}
 		\caption{Autokorelační funkce}
 		\label{fig:acf}
 	\end{subfigure}
 	\begin{subfigure}[t]{1\linewidth}
 		\centering
-		\includegraphics[width=1.1\linewidth]{../plots/pacf}
+		\includegraphics[width=1\linewidth]{../plots/pacf}
 		\caption{Parciální autokorelační funkce}
 		\label{fig:pacf}
 	\end{subfigure}
@@ -208,6 +208,8 @@ V prvním i druhém případě tedy došlo ke zlepšení oproti referenčnímu m
 	\caption{Výsledky modelu \gls{sarimax}.}\label{fig:sarimax}
 \end{figure}
 
+
+\clearpage
 
 \subsection{\glsentryshort{varmax}}
 
