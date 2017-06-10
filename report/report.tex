@@ -1,7 +1,7 @@
-\documentclass[a4paper,12pt]{article}
+\documentclass[a4paper,12pt, czech]{article}
 \usepackage[utf8]{inputenc} %Coding of input file - no problems with glyphs (ěš)
 \usepackage[T1]{fontenc} %Coding of output file - no problems with glyphs (ěš)
-\usepackage[czech]{babel} %Hyphenation and typesetting of loaded langs
+\usepackage{babel} %Hyphenation and typesetting of loaded langs
 \usepackage{datetime}
 
 \usepackage{caption}
@@ -17,7 +17,15 @@ pdfauthor={Krystof Pilnacek},
 pdftitle={Report z domaciho ukolu},
 pdfkeywords={casove rady, akcie, obchodovany objem},
 pdfsubject={Domaci ukol}]{hyperref}
-\usepackage{cleveref}
+
+\usepackage{xcolor} %Setting colors of references
+\definecolor{dark-red}{rgb}{.4,.15,.15}
+\definecolor{dark-blue}{rgb}{.15,.15,.4}
+\definecolor{medium-blue}{rgb}{0,0,.5}
+\hypersetup{
+	colorlinks, linkcolor={dark-red},
+	citecolor={dark-blue}, urlcolor={medium-blue} %url can be magenta 
+}
 
 
 \usepackage{parskip} %No indentation of first line on paragraph and line 
@@ -69,8 +77,8 @@ Předzpracování proběhlo v následujících krocích:
 	\item nastavení frekvence dat na pracovní dny,
 	\item doplnění chybějících dat interpolací,
 	\item rozdělení dat na testovací (out of sample) a kalibrační část (pro kalibraci použito 80\% dat),
-	\item škálování dat do řádu $10^0$ (viz \cref{fig:preprocess} ), a
-	\item variantně vytvoření první diference dat.
+	\item škálování dat do řádu $10^0$ (viz obr. \ref{fig:preprocess}), a
+	\item variantně vytvoření první diference dat (viz obr. \ref{fig:preprocess}).
 \end{enumerate}
 
 \begin{figure}[htbp]
