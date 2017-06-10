@@ -13,6 +13,9 @@
 \usepackage{subcaption}
 \usepackage{graphicx} %Pictures
 
+\usepackage{multirow} %Multi column and multirow tables
+\usepackage{booktabs} %Better tables
+
 \usepackage[pdftex,                %%% hyper-references for pdflatex
 bookmarks=true,%                   %%% generate bookmarks ...
 bookmarksnumbered=true,%           %%% ... with numbers
@@ -182,8 +185,40 @@ Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}
 \todo{prelozit statspace ...}
 
 
+\begin{figure}[htb]
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(SARIMAX)_scaled}
+		\caption{Fit a predikce škálovaných dat}
+		\label{fig:sarimax_scaled}
+	\end{subfigure}
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(SARIMAX)_first_diff}
+		\caption{Fit a predikce škálovaných dat s první diferencí}
+		\label{fig:sarimax_fd}
+	\end{subfigure}
+	\caption{Výsledky modelu \gls{sarimax}.}\label{fig:sarimax}
+\end{figure}
+
 
 \subsection{\glsentryshort{varmax}}
+
+\begin{figure}[htb]
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(VARMAX)_scaled}
+		\caption{Fit a predikce škálovaných dat}
+		\label{fig:varmax_scaled}
+	\end{subfigure}
+	\begin{subfigure}[t]{.5\linewidth}
+		\centering
+		\includegraphics[width=1.1\linewidth]{../plots/Model(VARMAX)_first_diff}
+		\caption{Fit a predikce škálovaných dat s první diferencí}
+		\label{fig:varmax_fd}
+	\end{subfigure}
+	\caption{Výsledky modelu \gls{varmax}.}\label{fig:varmax}
+\end{figure}
 
 \clearpage
 
@@ -195,6 +230,26 @@ Pro použitá data jsou grafy těchto funkcí vidět na obr. \ref{fig:auto_func}
 %	'sarimax; scaled': Results(SSE= 52.01, SST= 65.61, R^2=0.2074),
 %	'varmax; first_diff': Results(SSE= 54.37, SST= 67.56, R^2=0.1953),
 %	'varmax; scaled': Results(SSE= 59.15, SST= 65.61, R^2=0.0985)}
+
+\todo{r na druhou...}
+\begin{table} [htbp]
+	\caption{Porovnání $R^2$ pro všechny uvažované modely}
+	\label{tbl:r2}
+	\begin{center}
+		\begin{tabular}{c c S[round-precision = 4]}
+			\toprule
+			Model    & Předzpracování 	& R2 	 \\
+			\midrule
+			\multirow{2}{*}{Referenční}    & škálování 	&  -.0297 \\
+			& první dif.	& -1.7081 \\
+			\multirow{2}{*}{\gls{sarimax}} & škálování   &   .2074 \\
+			& první dif.   &  -.0087 \\
+			\multirow{2}{*}{\gls{varmax}}  & škálování   &   .0985 \\
+			& první dif.   &   .1953 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
 
 
 \clearpage
