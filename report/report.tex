@@ -1,8 +1,16 @@
-\documentclass[]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc} %Coding of input file - no problems with glyphs (ěš)
 \usepackage[T1]{fontenc} %Coding of output file - no problems with glyphs (ěš)
 \usepackage[czech]{babel} %Hyphenation and typesetting of loaded langs
+\usepackage{datetime}
+\usepackage{hyperref}
 
+\usepackage{parskip} %No indentation of first line on paragraph and line 
+\usepackage{setspace} %Set spacing between lines
+\setstretch{1.15}
+
+
+\newcommand{\code}[1]{\texttt{#1}}
 
 %opening
 \title{Report z domácího úkolu}
@@ -14,9 +22,42 @@
 
 \clearpage
 
+\section{Zadání}
+
+\begin{enumerate}
+	\item Z Yahoo Finance stáhněte denní data akciového indexu S\&P 500 za období \formatdate{1}{1}{2010} -- \formatdate{31}{7}{2014}.
+	
+	\item  Navrhněte a nakalibrujte několik různých modelů $E\left[v_{d+1}|F_d\right]$, kde $v_{d+1}$ je objem obchodů (volume) v den $d+1$ a $F_d$ je veškerá informace do dne $d$ (včetně).
+	Odhadněte přesnost modelů (jako kritérium použijte $SSE$, resp. $R^2$) na testovacích (out of sample) datech a porovnejte tuto přesnost s referenčním modelem $\hat{E}\left[v_{d+1}\right] = v_d$.
+	
+\end{enumerate}
+
+\section{Použité programy}
+
+Kód pro analýzu časové řady byl vytvořen v programovacím jazyku \code{Python 3.6.1}.
+
+Pro samotné zpracování a zobrazení dat byly navíc použity balíčky \code{numpy (1.13.0)}, \code{pandas (0.20.2)}, \code{matplotlib (2.0.2)} a \code{statsmodels (0.8.0)}.
+
 \section{Vstupní data}
 
+Vstupní byla ručně stažena z webu \href{https://finance.yahoo.com/quote/\%5EGSPC/history?period1=1262300400\&period2=1497045600\&interval=1d\&filter=history\&frequency=1d}{Yahoo Finance}.
+Byly zkoušeny i další metody získávání dat z tohoto webu (balíčky Pythonu \code{yahoo-finance} a \code{pandas-datareader} či API Yahoo Finance), nicméně bez úspěchu.
+
+Vstupní data jsou tedy staticky uložena v adresáři \code{./data/} v souboru nazvaném \code{\^{}GSPC.csv}.
+
 \subsection{Zpracování dat}
+
+Tabulková data byla načtena z \code{csv} souboru jako \code{pandas.DataFrame}.
+Předzpracování proběhlo v následujících krocích:
+
+\begin{enumerate}
+	\item nastavení frekvence dat na pracovní dny,
+	\item doplnění chybějících dat interpolací,
+	\item rozdělení dat na testovací (out of sample) a kalibrační část (pro kalibraci použito 80\% dat),
+	\item škálování dat do řádu $10^0$, a
+	\item variantně vytvoření první diference dat.
+\end{enumerate}
+
 
 \clearpage
 
