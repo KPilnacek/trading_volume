@@ -4,6 +4,11 @@
 \usepackage{babel} %Hyphenation and typesetting of loaded langs
 \usepackage{datetime}
 
+\usepackage{todonotes} %Adding todo notes
+\usepackage{siunitx} %typography of units
+\sisetup{separate-uncertainty=true,
+	range-units = single}
+
 \usepackage{caption}
 \usepackage{graphicx} %Pictures
 
@@ -35,6 +40,23 @@ pdfsubject={Domaci ukol}]{hyperref}
 
 \newcommand{\code}[1]{\texttt{#1}}
 
+
+%===========Glossary================
+\usepackage[acronym,toc,nopostdot, nonumberlist,nomain,shortcuts]{glossaries}%nogroupskip
+%\usepackage{glossaries-extra}
+\renewcommand{\glsgroupskip}{}% make nothing happen between groups 
+
+%\newacronym{acr}{}{\vspace*{-7.65mm}}
+
+\setacronymstyle{long-short}
+
+\newacronym[description=napsat cesky \todo{dodelat}]{sarimax}{SARIMAX}{Seasonal ... anglicky}
+\newacronym[description=napsat cesky \todo{dodelat}]{varmax}{VARMAX}{Vector Auto Regressive ... anglicky}
+
+\makenoidxglossaries
+
+
+
 %opening
 \title{Report z domácího úkolu}
 \author{Kryštof Pilnáček}
@@ -45,12 +67,12 @@ pdfsubject={Domaci ukol}]{hyperref}
 
 \clearpage
 
-\section{Zadání}
+\section{Zadání} \label{sec:zadani}
 
 \begin{enumerate}
-	\item Z Yahoo Finance stáhněte denní data akciového indexu S\&P 500 za období \formatdate{1}{1}{2010} -- \formatdate{31}{7}{2014}.
+	\item Z Yahoo Finance stáhněte denní data akciového indexu S\&P 500 za období \formatdate{1}{1}{2010} -- \formatdate{31}{7}{2014}. \label{list:zadani_data}
 	
-	\item  Navrhněte a nakalibrujte několik různých modelů $E\left[v_{d+1}|F_d\right]$, kde $v_{d+1}$ je objem obchodů (volume) v den $d+1$ a $F_d$ je veškerá informace do dne $d$ (včetně).
+	\item  Navrhněte a nakalibrujte několik různých modelů $E\left[v_{d+1}|F_d\right]$, kde $v_{d+1}$ je objem obchodů (volume) v den $d+1$ a $F_d$ je veškerá informace do dne $d$ (včetně). \label{list:zadani_modely}
 	Odhadněte přesnost modelů (jako kritérium použijte $SSE$, resp. $R^2$) na testovacích (out of sample) datech a porovnejte tuto přesnost s referenčním modelem $\hat{E}\left[v_{d+1}\right] = v_d$.
 	
 \end{enumerate}
@@ -104,16 +126,43 @@ Závěrem lze říci, že na sezónní vlivy bude muset při modelování být b
 
 \section{Modely}
 
-
+Pro modelování časových řad byly použity statespace modely \todo{přeložit a rozepsat} \gls{sarimax} a \gls{varmax} z balíčku \code{statsmodels}.
+První z modelů byl vybrán proto, že umožňuje popsat sezónní vlivy interně v modelu.
+Druhý model byl vybrán proto, že dle bodu \ref{list:zadani_modely} v \nameref{sec:zadani} bylo nutno do modelu zahrnout veškerá dostupná data, tedy nejen předchozí data o objemech obchodů.
 
 \subsection{Referenční model}
 
-\subsection{SARIMAX}
+Referenční model byl sestaven podle bodu \ref{list:zadani_modely} v \nameref{sec:zadani}, tedy
 
-\subsection{VARMAX}
+\begin{equation}\label{eq:reference}
+\hat{E}\left[v_{d+1}\right] = v_d.
+\end{equation}
+
+Konečná implementace vypadala tedy tak, že pro objem obchodů předpovídaných pro následující den byl dosazen objem obchodů ze dne současného, tedy $v_{d+1} = v_d$.
+Pro škálovaná out of sample data vychází $R^2=\num{-.0297}$ a pro první diferenci škálovaných dat $R^2=\num{-1.7081}$.
+V prvním případě je tedy předpověď tohoto modelu o něco málo horší než, kdybychom brali pouze průměr z těchto dat.
+V případě druhém je výrazně horší.
+V každém případě nám to poskytuje dobré porovnání pro méně naivní modely.
+
+\subsection{\glsentryshort{sarimax}}
+
+\subsection{\glsentryshort{varmax}}
 
 \clearpage
 
 \section{Závěr}
+
+%{'reference; first_diff': Results(SSE=182.96, SST= 67.56, R^2=-1.7081),
+%	'reference; scaled': Results(SSE= 67.56, SST= 65.61, R^2=-0.0297),
+%	'sarimax; first_diff': Results(SSE= 68.15, SST= 67.56, R^2=-0.0087),
+%	'sarimax; scaled': Results(SSE= 52.01, SST= 65.61, R^2=0.2074),
+%	'varmax; first_diff': Results(SSE= 54.37, SST= 67.56, R^2=0.1953),
+%	'varmax; scaled': Results(SSE= 59.15, SST= 65.61, R^2=0.0985)}
+
+
+\clearpage
+\singlespacing
+\printnoidxglossary[type=acronym,title=Seznam zkratek,sort=word]
+
 
 \end{document}
